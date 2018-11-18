@@ -36,7 +36,7 @@ void CScoreboard::OnReset()
 	m_Active = false;
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
-		m_aPlayerStats[i].Reset();
+		ResetPlayerStats(i);
 }
 
 void CScoreboard::OnRelease()
@@ -84,7 +84,6 @@ void CScoreboard::RenderGoals(float x, float y, float w)
 float CScoreboard::RenderSpectators(float x, float y, float w)
 {
 	float h = 20.0f;
-	float StartY = y;
 
 	int NumSpectators = 0;
 	for(int i = 0; i < MAX_CLIENTS; i++)
@@ -358,7 +357,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				Graphics()->BlendNormal();
 				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_DEADTEE].m_Id);
 				Graphics()->QuadsBegin();
-				IGraphics::CQuadItem QuadItem(TeeOffset, y+Spacing, 20*TeeSizeMod, 20*TeeSizeMod);
+				IGraphics::CQuadItem QuadItem(TeeOffset+TeeLength/2 - 10*TeeSizeMod, y+Spacing, 20*TeeSizeMod, 20*TeeSizeMod);
 				Graphics()->QuadsDrawTL(&QuadItem, 1);
 				Graphics()->QuadsEnd();
 			}
@@ -470,20 +469,21 @@ void CScoreboard::OnRender()
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
 
 	float Width = Screen.w;
+	float y = 100.f;
 	float w = 364.0f;
 
 	if(m_pClient->m_Snap.m_pGameData)
 	{
 		if(!(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS))
 		{
-			float ScoreboardHeight = RenderScoreboard(Width/2-w/2, 70.0f, w, 0, 0, -1);
+			float ScoreboardHeight = RenderScoreboard(Width/2-w/2, y, w, 0, 0, -1);
 
-			float SpectatorHeight = RenderSpectators(Width/2-w/2, 73.0f+ScoreboardHeight, w);
-			RenderGoals(Width/2-w/2, 73.0f+ScoreboardHeight, w);
+			float SpectatorHeight = RenderSpectators(Width/2-w/2, y+3.0f+ScoreboardHeight, w);
+			RenderGoals(Width/2-w/2, y+3.0f+ScoreboardHeight, w);
 
 			// scoreboard size
 			m_TotalRect.x = Width/2-w/2;
-			m_TotalRect.y = 70.0f;
+			m_TotalRect.y = y;
 			m_TotalRect.w = w;
 			m_TotalRect.h = ScoreboardHeight+SpectatorHeight+3.0f;
 		}
@@ -512,27 +512,27 @@ void CScoreboard::OnRender()
 						str_copy(aText, Localize("Blue team wins!"), sizeof(aText));
 				}
 
-				float w = TextRender()->TextWidth(0, 86.0f, aText, -1);
-				TextRender()->Text(0, Width/2-w/2, 39, 86.0f, aText, -1);
+				float tw = TextRender()->TextWidth(0, 86.0f, aText, -1);
+				TextRender()->Text(0, Width/2-tw/2, 39, 86.0f, aText, -1);
 			}
 			else if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_ROUNDOVER)
 			{
 				char aText[256];
 				str_copy(aText, Localize("Round over!"), sizeof(aText));
 
-				float w = TextRender()->TextWidth(0, 86.0f, aText, -1);
-				TextRender()->Text(0, Width/2-w/2, 39, 86.0f, aText, -1);
+				float tw = TextRender()->TextWidth(0, 86.0f, aText, -1);
+				TextRender()->Text(0, Width/2-tw/2, 39, 86.0f, aText, -1);
 			}
 
-			float ScoreboardHeight = RenderScoreboard(Width/2-w-1.5f, 70.0f, w, TEAM_RED, pRedClanName ? pRedClanName : Localize("Red team"), -1);
-			RenderScoreboard(Width/2+1.5f, 70.0f, w, TEAM_BLUE, pBlueClanName ? pBlueClanName : Localize("Blue team"), 1);
+			float ScoreboardHeight = RenderScoreboard(Width/2-w-1.5f, y, w, TEAM_RED, pRedClanName ? pRedClanName : Localize("Red team"), -1);
+			RenderScoreboard(Width/2+1.5f, y, w, TEAM_BLUE, pBlueClanName ? pBlueClanName : Localize("Blue team"), 1);
 
-			float SpectatorHeight = RenderSpectators(Width/2-w-1.5f, 73.0f+ScoreboardHeight, w*2.0f+3.0f);
-			RenderGoals(Width/2-w-1.5f, 73.0f+ScoreboardHeight, w*2.0f+3.0f);
+			float SpectatorHeight = RenderSpectators(Width/2-w-1.5f, y+3.0f+ScoreboardHeight, w*2.0f+3.0f);
+			RenderGoals(Width/2-w-1.5f, y+3.0f+ScoreboardHeight, w*2.0f+3.0f);
 
 			// scoreboard size
 			m_TotalRect.x = Width/2-w-1.5f;
-			m_TotalRect.y = 70.0f;
+			m_TotalRect.y = y;
 			m_TotalRect.w = w*2.0f+3.0f;
 			m_TotalRect.h = ScoreboardHeight+SpectatorHeight+3.0f;
 		}
@@ -568,11 +568,7 @@ void CScoreboard::OnMessage(int MsgType, void *pRawMsg)
 
 bool CScoreboard::Active()
 {
-	// disable scoreboard if the menu is active
-	if(m_pClient->m_pMenus->IsActive())
-		return false;
-
-	// if we activly wanna look on the scoreboard
+	// if we actively wanna look on the scoreboard
 	if(m_Active)
 		return true;
 
