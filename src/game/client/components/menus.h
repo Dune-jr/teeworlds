@@ -83,6 +83,7 @@ private:
 	void DoEditBoxOption(void *pID, char *pOption, int OptionLength, const CUIRect *pRect, const char *pStr, float VSplitVal, float *pOffset, bool Hidden=false);
 	void DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, float VSplitVal, int Min, int Max, bool infinite=false);
 	float DoDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback);
+	float DoIndependentDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback, bool* pActive);
 	void DoInfoBox(const CUIRect *pRect, const char *pLable, const char *pValue);
 	//static int ui_do_edit_box(void *id, const CUIRect *rect, char *str, unsigned str_size, float font_size, bool hidden=false);
 
@@ -161,15 +162,10 @@ private:
 		PAGE_CALLVOTE,
 		PAGE_INTERNET,
 		PAGE_LAN,
-		PAGE_FRIENDS,
 		PAGE_DEMOS,
 		PAGE_SETTINGS,
 		PAGE_SYSTEM,
 		PAGE_START,
-
-		PAGE_BROWSER_BROWSER=0,
-		PAGE_BROWSER_FRIENDS,
-		NUM_PAGE_BROWSER,
 
 		SETTINGS_GENERAL=0,
 		SETTINGS_PLAYER,
@@ -183,14 +179,12 @@ private:
 	int m_Popup;
 	int m_ActivePage;
 	int m_MenuPage;
-	int m_BorwserPage;
 	bool m_MenuActive;
 	int m_SidebarTab;
 	bool m_SidebarActive;
 	bool m_UseMouseButtons;
 	vec2 m_MousePos;
 	vec2 m_PrevMousePos;
-	bool m_InfoMode;
 	bool m_PopupActive;
 
 	// images
@@ -238,7 +232,10 @@ private:
 	//
 	bool m_EscapePressed;
 	bool m_EnterPressed;
+	bool m_TabPressed;
 	bool m_DeletePressed;
+	bool m_UpArrowPressed;
+	bool m_DownArrowPressed;
 
 	// for map download popup
 	int64 m_DownloadLastCheckTime;
@@ -287,30 +284,11 @@ private:
 	class CFriendItem
 	{
 	public:
-		class CClanFriendItem
-		{
-		public:
-			CClanFriendItem()
-			{
-				m_lFriendInfos.clear();
-				m_lServerInfos.clear();
-			}
-
-			~CClanFriendItem()
-			{
-				m_lFriendInfos.clear();
-				m_lServerInfos.clear();
-			}
-
-			array<CFriendInfo> m_lFriendInfos;
-			array<const CServerInfo*> m_lServerInfos;
-		};
-
-		int m_NumFound;
 		const CFriendInfo *m_pFriendInfo;
 		const CServerInfo *m_pServerInfo;
-
-		CClanFriendItem m_ClanFriend;
+		char m_aName[MAX_NAME_LENGTH];
+		char m_aClan[MAX_CLAN_LENGTH];
+		bool m_IsPlayer;
 
 		CFriendItem()
 		{
@@ -318,48 +296,31 @@ private:
 			m_pServerInfo = 0;
 		}
 
-		bool IsClanFriend()
+		bool operator<(const CFriendItem &Other)
 		{
-			return m_pFriendInfo->m_aClan[0] && !m_pFriendInfo->m_aName[0];
+			if(m_aName[0] && !Other.m_aName[0])
+				return true;
+			if(!m_aName[0] && Other.m_aName[0])
+				return false;
+			int Result = str_comp_nocase(m_aName, Other.m_aName);
+			if(Result < 0 || (Result == 0 && str_comp_nocase(m_aClan, Other.m_aClan) < 0))
+				return true;
+			
+			return false;
 		}
-
-		void Reset()
-		{
-			m_NumFound = 0;
-			m_ClanFriend.m_lFriendInfos.clear();
-			m_ClanFriend.m_lServerInfos.clear();
-		}
-	};
-
-	struct CSelectedFriend
-	{
-		bool m_ClanFriend;
-		bool m_FakeFriend;
-		unsigned m_NameHash;
-		unsigned m_ClanHash;
 	};
 
 	enum
 	{
-		FRIENDS_SORT_TYPE = 0,
-		FRIENDS_SORT_SERVER,
-		FRIENDS_SORT_NAME,
-		FRIENDS_SORT_CLAN,
+		FRIEND_PLAYER_ON = 0,
+		FRIEND_CLAN_ON,
+		FRIEND_OFF,
+		NUM_FRIEND_TYPES
 	};
-
-	int *m_pFriendIndexes;
-	array<CFriendItem> m_lFriends;
-	int m_FriendlistSelectedIndex;
-	const CFriendInfo *m_pDeleteFriendInfo;
-	CSelectedFriend m_SelectedFriend;
-
-	bool SortCompareName(int Index1, int Index2) const;
-	bool SortCompareClan(int Index1, int Index2) const;
-	bool SortCompareServer(int Index1, int Index2) const;
-	bool SortCompareType(int Index1, int Index2) const;
+	sorted_array<CFriendItem> m_lFriendList[NUM_FRIEND_TYPES];
+	const CFriendItem *m_pDeleteFriend;
 
 	void FriendlistOnUpdate();
-	void SortFriends();
 
 	class CBrowserFilter
 	{
@@ -368,6 +329,10 @@ private:
 		char m_aName[64];
 		int m_Filter;
 		class IServerBrowser *m_pServerBrowser;
+
+		static class CServerFilterInfo ms_FilterStandard;
+		static class CServerFilterInfo ms_FilterFavorites;
+		static class CServerFilterInfo ms_FilterAll;
 
 	public:
 
@@ -380,9 +345,10 @@ private:
 		};
 		// buttons var
 		int m_SwitchButton;
+		int m_aButtonID[3];
 
 		CBrowserFilter() {}
-		CBrowserFilter(int Custom, const char* pName, IServerBrowser *pServerBrowser, int Filter, int Ping, int Country, const char* pGametype, const char* pServerAddress);
+		CBrowserFilter(int Custom, const char* pName, IServerBrowser *pServerBrowser);
 		void Switch();
 		bool Extended() const;
 		int Custom() const;
@@ -396,6 +362,7 @@ private:
 		const CServerInfo *SortedGet(int Index) const;
 		const void *ID(int Index) const;
 
+		void Reset();
 		void GetFilter(class CServerFilterInfo *pFilterInfo) const;
 		void SetFilter(const class CServerFilterInfo *pFilterInfo);
 	};
@@ -450,13 +417,6 @@ private:
 		COL_BROWSER_PLAYERS,
 		COL_BROWSER_PING,
 		NUM_BROWSER_COLS,
-
-		COL_FRIEND_TYPE = 0,
-		COL_FRIEND_SERVER,
-		COL_FRIEND_NAME,
-		COL_FRIEND_CLAN,
-		COL_FRIEND_DELETE,
-		NUM_FRIEND_COLS,
 	};
 
 	struct CColumn
@@ -472,7 +432,6 @@ private:
 	};
 
 	static CColumn ms_aBrowserCols[NUM_BROWSER_COLS];
-	static CColumn ms_aFriendCols[NUM_FRIEND_COLS];
 
 	enum
 	{
@@ -523,19 +482,21 @@ private:
 	void RenderServerControlServer(CUIRect MainView);
 
 	// found in menus_browser.cpp
-	int m_ScrollOffset;
+	// int m_ScrollOffset;
 	void RenderServerbrowserServerList(CUIRect View);
 	void RenderServerbrowserSidebar(CUIRect View);
 	void RenderServerbrowserFriendTab(CUIRect View);
 	void RenderServerbrowserFilterTab(CUIRect View);
 	void RenderServerbrowserInfoTab(CUIRect View);
 	void RenderServerbrowserFriendList(CUIRect View);
+	void RenderDetailInfo(CUIRect View, const CServerInfo *pInfo);
+	void RenderDetailScoreboard(CUIRect View, const CServerInfo *pInfo, int Column);
 	void RenderServerbrowserServerDetail(CUIRect View, const CServerInfo *pInfo);
 	//void RenderServerbrowserFriends(CUIRect View);
 	void RenderServerbrowserBottomBox(CUIRect View);
 	void RenderServerbrowserOverlay();
 	bool RenderFilterHeader(CUIRect View, int FilterIndex);
-	int DoBrowserEntry(const void *pID, CUIRect *pRect, const CServerInfo *pEntry, const CBrowserFilter *pFilter, bool Selected);
+	int DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEntry, const CBrowserFilter *pFilter, bool Selected);
 	void RenderServerbrowser(CUIRect MainView);
 	static void ConchainFriendlistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
@@ -574,8 +535,6 @@ private:
 
 	void InvokePopupMenu(void *pID, int Flags, float X, float Y, float W, float H, int (*pfnFunc)(CMenus *pMenu, CUIRect Rect), void *pExtra=0);
 	void DoPopupMenu();
-
-	static int PopupFilter(CMenus *pMenus, CUIRect View);
 
 	IGraphics::CTextureHandle m_TextureBlob;
 

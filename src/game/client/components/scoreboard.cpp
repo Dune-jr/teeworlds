@@ -357,6 +357,12 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				Graphics()->BlendNormal();
 				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_DEADTEE].m_Id);
 				Graphics()->QuadsBegin();
+				if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
+				{
+					vec4 Color = m_pClient->m_pSkins->GetColorV4(m_pClient->m_pSkins->GetTeamColor(true, 0, m_pClient->m_aClients[pInfo->m_ClientID].m_Team, SKINPART_BODY), false);
+					Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+				}
+				IGraphics::CQuadItem QuadItem(TeeOffset, y-5.0f, 64*TeeSizeMod, 64*TeeSizeMod);
 				IGraphics::CQuadItem QuadItem(TeeOffset+TeeLength/2 - 10*TeeSizeMod, y+Spacing, 20*TeeSizeMod, 20*TeeSizeMod);
 				Graphics()->QuadsDrawTL(&QuadItem, 1);
 				Graphics()->QuadsEnd();

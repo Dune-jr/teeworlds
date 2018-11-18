@@ -377,20 +377,6 @@ bool CClient::ConnectionProblems() const
 	return m_NetClient.GotProblems() != 0;
 }
 
-void CClient::DirectInput(int *pInput, int Size)
-{
-	CMsgPacker Msg(NETMSG_INPUT, true);
-	Msg.AddInt(m_AckGameTick);
-	Msg.AddInt(m_PredTick);
-	Msg.AddInt(Size);
-
-	for(int i = 0; i < Size/4; i++)
-		Msg.AddInt(pInput[i]);
-
-	SendMsg(&Msg, 0);
-}
-
-
 void CClient::SendInput()
 {
 	int64 Now = time_get();
@@ -417,6 +403,12 @@ void CClient::SendInput()
 	// pack it
 	for(int i = 0; i < Size/4; i++)
 		Msg.AddInt(m_aInputs[m_CurrentInput].m_aData[i]);
+
+	int PingCorrection = 0;
+	int64 TagTime;
+	if(m_SnapshotStorage.Get(m_AckGameTick, &TagTime, 0, 0) >= 0)
+		PingCorrection = (int)(((Now-TagTime)*1000)/time_freq());
+	Msg.AddInt(PingCorrection);
 
 	m_CurrentInput++;
 	m_CurrentInput%=200;
@@ -1381,7 +1373,6 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 						m_GameTime.Init((GameTick-1)*time_freq()/50);
 						m_aSnapshots[SNAP_PREV] = m_SnapshotStorage.m_pFirst;
 						m_aSnapshots[SNAP_CURRENT] = m_SnapshotStorage.m_pLast;
-						m_LocalStartTime = time_get();
 						SetState(IClient::STATE_ONLINE);
 						DemoRecorder_HandleAutoStart();
 					}
@@ -2400,8 +2391,6 @@ void CClient::RegisterCommands()
 
 	// used for server browser update
 	m_pConsole->Chain("br_filter_string", ConchainServerBrowserUpdate, this);
-	m_pConsole->Chain("br_filter_gametype", ConchainServerBrowserUpdate, this);
-	m_pConsole->Chain("br_filter_serveraddress", ConchainServerBrowserUpdate, this);
 
 	m_pConsole->Chain("gfx_screen", ConchainWindowScreen, this);
 	m_pConsole->Chain("gfx_fullscreen", ConchainFullscreen, this);

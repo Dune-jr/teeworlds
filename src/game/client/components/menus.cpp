@@ -33,7 +33,7 @@
 #include "skins.h"
 
 float CMenus::ms_ButtonHeight = 25.0f;
-float CMenus::ms_ListheaderHeight = 20.0f;
+float CMenus::ms_ListheaderHeight = 17.0f;
 float CMenus::ms_FontmodHeight = 0.8f;
 
 
@@ -59,19 +59,19 @@ CMenus::CMenus()
 
 	SetMenuPage(PAGE_START);
 
-	m_InfoMode = false;
 	m_PopupActive = false;
 
 	m_EscapePressed = false;
 	m_EnterPressed = false;
+	m_TabPressed = false;
 	m_DeletePressed = false;
+	m_UpArrowPressed = false;
+	m_DownArrowPressed = false;
 
 	m_LastInput = time_get();
 
 	str_copy(m_aCurrentDemoFolder, "demos", sizeof(m_aCurrentDemoFolder));
 	m_aCallvoteReason[0] = 0;
-
-	m_FriendlistSelectedIndex = -1;
 
 	m_SelectedFilter = 0;
 
@@ -81,16 +81,13 @@ CMenus::CMenus()
 
 float CMenus::ButtonFade(CButtonContainer *pBC, float Seconds, int Checked)
 {
-	if (UI()->HotItem() == pBC->GetID() || Checked)
+	if(UI()->HotItem() == pBC->GetID() || Checked)
 	{
 		pBC->m_FadeStartTime = Client()->LocalTime();
 		return Seconds;
 	}
-	else if (pBC->m_FadeStartTime + Seconds > Client()->LocalTime())
-	{
-		return pBC->m_FadeStartTime + Seconds - Client()->LocalTime();
-	}
-	return 0.0f;
+
+	return max(0.0f, pBC->m_FadeStartTime -  Client()->LocalTime() + Seconds);
 }
 
 int CMenus::DoIcon(int ImageId, int SpriteId, const CUIRect *pRect)
@@ -636,6 +633,50 @@ float CMenus::DoDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, 
 	return HeaderHeight;
 }
 
+float CMenus::DoIndependentDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback, bool* pActive)
+{
+	CUIRect View = *pRect;
+	CUIRect Header, Label;
+
+	bool Active = *pActive;
+	int Corners = Active ? CUI::CORNER_T : CUI::CORNER_ALL;
+
+	View.HSplitTop(HeaderHeight, &Header, &View);
+
+	// background
+	RenderTools()->DrawUIRect(&Header, vec4(0.0f, 0.0f, 0.0f, 0.25f), Corners, 5.0f);
+
+	// render icon
+	CUIRect Button;
+	Header.VSplitLeft(Header.h, &Button, 0);
+	Button.Margin(2.0f, &Button);
+	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MENUICONS].m_Id);
+	Graphics()->QuadsBegin();
+	Graphics()->SetColor(1.0f, 1.0f, 1.0f, UI()->HotItem() == pID ? 1.0f : 0.6f);
+	if(Active)
+		RenderTools()->SelectSprite(SPRITE_MENU_EXPANDED);
+	else
+		RenderTools()->SelectSprite(SPRITE_MENU_COLLAPSED);
+	IGraphics::CQuadItem QuadItem(Button.x, Button.y, Button.w, Button.h);
+	Graphics()->QuadsDrawTL(&QuadItem, 1);
+	Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+	Graphics()->QuadsEnd();
+
+	// label
+	Label = Header;
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, pStr, Header.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+
+	if(UI()->DoButtonLogic(pID, 0, 0, &Header))
+		*pActive ^= 1;
+
+	// render content of expanded menu
+	if(Active)
+		return HeaderHeight + pfnCallback(View, this);
+
+	return HeaderHeight;
+}
+
 void CMenus::DoInfoBox(const CUIRect *pRect, const char *pLabel, const char *pValue)
 {
 	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
@@ -915,8 +956,8 @@ CMenus::CListboxItem CMenus::UiDoListboxNextItem(CListBoxState* pState, const vo
 			else
 			{
 				int NewIndex = -1;
-				if(Input()->KeyPress(KEY_DOWN)) NewIndex = pState->m_ListBoxNewSelected + 1;
-				if(Input()->KeyPress(KEY_UP)) NewIndex = pState->m_ListBoxNewSelected - 1;
+				if(m_DownArrowPressed) NewIndex = pState->m_ListBoxNewSelected + 1;
+				if(m_UpArrowPressed) NewIndex = pState->m_ListBoxNewSelected - 1;
 				if(NewIndex > -1 && NewIndex < pState->m_ListBoxNumItems)
 				{
 					// scroll
@@ -969,7 +1010,7 @@ int CMenus::DoKeyReader(CButtonContainer *pBC, const CUIRect *pRect, int Key)
 	static const void *pGrabbedID = 0;
 	static bool MouseReleased = true;
 	static int ButtonUsed = 0;
-	int Inside = UI()->MouseInside(pRect);
+	int Inside = UI()->MouseInside(pRect) && UI()->MouseInsideClip();
 	int NewKey = Key;
 
 	if(!UI()->MouseButton(0) && !UI()->MouseButton(1) && pGrabbedID == pBC->GetID())
@@ -1060,6 +1101,7 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_GeneralButton;
 		if(DoButton_MenuTabTop(&s_GeneralButton, Localize("General"), g_Config.m_UiSettingsPage==SETTINGS_GENERAL, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_GENERAL);
 			g_Config.m_UiSettingsPage = SETTINGS_GENERAL;
 		}
 
@@ -1068,6 +1110,7 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_PlayerButton;
 		if(Client()->State() != IClient::STATE_ONLINE && DoButton_MenuTabTop(&s_PlayerButton, Localize("Player"), g_Config.m_UiSettingsPage == SETTINGS_PLAYER, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_PLAYER);
 			g_Config.m_UiSettingsPage = SETTINGS_PLAYER;
 		}
 
@@ -1076,6 +1119,7 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_TeeButton;
 		if(Client()->State() != IClient::STATE_ONLINE && DoButton_MenuTabTop(&s_TeeButton, Localize("Tee"), g_Config.m_UiSettingsPage == SETTINGS_TEE, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_TEE);
 			g_Config.m_UiSettingsPage = SETTINGS_TEE;
 		}
 
@@ -1084,6 +1128,7 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_ControlsButton;
 		if(DoButton_MenuTabTop(&s_ControlsButton, Localize("Controls"), g_Config.m_UiSettingsPage==SETTINGS_CONTROLS, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_CONTROLS);
 			g_Config.m_UiSettingsPage = SETTINGS_CONTROLS;
 		}
 
@@ -1092,6 +1137,7 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_GraphicsButton;
 		if(DoButton_MenuTabTop(&s_GraphicsButton, Localize("Graphics"), g_Config.m_UiSettingsPage==SETTINGS_GRAPHICS, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_GRAPHICS);
 			g_Config.m_UiSettingsPage = SETTINGS_GRAPHICS;
 		}
 
@@ -1100,27 +1146,25 @@ void CMenus::RenderMenubar(CUIRect r)
 		static CButtonContainer s_SoundButton;
 		if(DoButton_MenuTabTop(&s_SoundButton, Localize("Sound"), g_Config.m_UiSettingsPage==SETTINGS_SOUND, &Button))
 		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_SOUND);
 			g_Config.m_UiSettingsPage = SETTINGS_SOUND;
 		}
 	}
 	else if(Client()->State() == IClient::STATE_OFFLINE)
 	{
 		// render menu tabs
-		if(m_MenuPage >= PAGE_INTERNET && m_MenuPage <= PAGE_FRIENDS)
+		if(m_MenuPage >= PAGE_INTERNET && m_MenuPage <= PAGE_LAN)
 		{
 			float Spacing = 3.0f;
 			float ButtonWidth = (Box.w/6.0f)-(Spacing*5.0)/6.0f;
 
-			CUIRect Left, Right;
+			CUIRect Left;
 			Box.VSplitLeft(ButtonWidth*2.0f+Spacing, &Left, 0);
-			Box.VSplitRight(ButtonWidth, 0, &Right);
 
 			// render header backgrounds
 			RenderTools()->DrawUIRect4(&Left, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
-			RenderTools()->DrawUIRect4(&Right, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
-
+			
 			Left.HSplitBottom(25.0f, 0, &Left);
-			Right.HSplitBottom(25.0f, 0, &Right);
 
 			Left.VSplitLeft(ButtonWidth, &Button, &Left);
 			static CButtonContainer s_InternetButton;
@@ -1141,19 +1185,6 @@ void CMenus::RenderMenubar(CUIRect r)
 				ServerBrowser()->SetType(IServerBrowser::TYPE_LAN);
 				NewPage = PAGE_LAN;
 				g_Config.m_UiBrowserPage = PAGE_LAN;
-			}
-
-			char aBuf[32];
-			if(m_BorwserPage == PAGE_BROWSER_BROWSER)
-				str_copy(aBuf, Localize("Friends"), sizeof(aBuf));
-			else if(m_BorwserPage == PAGE_BROWSER_FRIENDS)
-				str_copy(aBuf, Localize("Browser"), sizeof(aBuf));
-			static CButtonContainer s_FilterButton;
-			if(DoButton_Menu(&s_FilterButton, aBuf, 0, &Right))
-			{
-				m_BorwserPage++;
-				if(m_BorwserPage >= NUM_PAGE_BROWSER)
-					m_BorwserPage = 0;
 			}
 		}
 		else if(m_MenuPage == PAGE_DEMOS)
@@ -1588,14 +1619,23 @@ int CMenus::Render()
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_INTERNET);
 				m_MenuPage = PAGE_INTERNET;
 			}*/
+
 			// quit button
-			CUIRect Button;
-			float TopOffset = 35.0f;
-			Screen.HSplitTop(TopOffset, &Button, 0);
-			Button.VSplitRight(TopOffset - 3.0f, 0, &Button);
-			static CButtonContainer s_QuitButton;
-			if(DoButton_Menu(&s_QuitButton, "X", 0, &Button, 0, CUI::CORNER_BL))
-				m_Popup = POPUP_QUIT;
+			{
+				CUIRect Button;
+				float TopOffset = 35.0f;
+				Screen.HSplitTop(TopOffset, &Button, 0);
+				Button.VSplitRight(TopOffset - 3.0f, 0, &Button);
+				static CButtonContainer s_QuitButton;
+
+				// draw red-blending button
+				vec4 Color = mix(vec4(1.f, 1.f, 1.f, 0.25f), vec4(1.f/0xff*0xf9, 1.f/0xff*0x2b, 1.f/0xff*0x2b, 0.75f), ButtonFade(&s_QuitButton, 0.6f, 0)/0.6f);
+				RenderTools()->DrawUIRect(&Button, Color, CUI::CORNER_BL|CUI::CORNER_BR|CUI::CORNER_TL, 5.0f);
+
+				// draw non-blending X
+				if(DoButton_SpriteCleanID(&s_QuitButton, IMAGE_TOOLICONS, SPRITE_TOOL_X_A, &Button, false))
+					m_Popup = POPUP_QUIT;
+			}
 
 			// render current page
 			if(Client()->State() != IClient::STATE_OFFLINE)
@@ -1621,8 +1661,6 @@ int CMenus::Render()
 					RenderServerbrowser(MainView);
 				else if(m_MenuPage == PAGE_DEMOS)
 					RenderDemoList(MainView);
-				else if(m_MenuPage == PAGE_FRIENDS)
-					RenderServerbrowser(MainView);
 				else if(m_MenuPage == PAGE_SETTINGS)
 					RenderSettings(MainView);
 			}
@@ -2071,12 +2109,12 @@ int CMenus::Render()
 			{
 				m_Popup = POPUP_NONE;
 				// remove friend
-				if(m_FriendlistSelectedIndex >= 0)
+				if(m_pDeleteFriend)
 				{
-					m_pClient->Friends()->RemoveFriend(m_lFriends[m_FriendlistSelectedIndex].m_pFriendInfo->m_aName,
-						m_lFriends[m_FriendlistSelectedIndex].m_pFriendInfo->m_aClan);
+					m_pClient->Friends()->RemoveFriend(m_pDeleteFriend->m_aName, m_pDeleteFriend->m_aClan);
 					FriendlistOnUpdate();
 					Client()->ServerBrowserUpdate();
+					m_pDeleteFriend = 0;
 				}
 			}
 		}
@@ -2257,8 +2295,14 @@ bool CMenus::OnInput(IInput::CEvent e)
 			// special for popups
 			if(e.m_Key == KEY_RETURN || e.m_Key == KEY_KP_ENTER)
 				m_EnterPressed = true;
+			else if(e.m_Key == KEY_TAB && !Input()->KeyPress(KEY_LALT) && !Input()->KeyPress(KEY_RALT))
+				m_TabPressed = true;
 			else if(e.m_Key == KEY_DELETE)
 				m_DeletePressed = true;
+			else if(e.m_Key == KEY_UP)
+				m_UpArrowPressed = true;
+			else if(e.m_Key == KEY_DOWN)
+				m_DownArrowPressed = true;
 		}
 		return true;
 	}
@@ -2292,14 +2336,14 @@ void CMenus::OnConsoleInit()
 	{
 		// put it on top
 		int Pos = m_lFilters.size();
-		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, "Teeworlds", ServerBrowser(), IServerBrowser::FILTER_COMPAT_VERSION | IServerBrowser::FILTER_PURE | IServerBrowser::FILTER_PURE_MAP | IServerBrowser::FILTER_PING, 999, -1, "", ""));
+		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, "Teeworlds", ServerBrowser()));
 		for(; Pos > 0; --Pos)
 			Move(true, Pos);
 	}
 	if(!FilterFav)
-		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_FAVORITES, Localize("Favorites"), ServerBrowser(), IServerBrowser::FILTER_FAVORITE | IServerBrowser::FILTER_PING, 999, -1, "", ""));
+		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_FAVORITES, Localize("Favorites"), ServerBrowser()));
 	if(!FilterAll)
-		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_ALL, Localize("All"), ServerBrowser(), IServerBrowser::FILTER_PING, 999, -1, "", ""));
+		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_ALL, Localize("All"), ServerBrowser()));
 }
 
 void CMenus::OnShutdown()
@@ -2374,7 +2418,10 @@ void CMenus::OnRender()
 	{
 		m_EscapePressed = false;
 		m_EnterPressed = false;
+		m_TabPressed = false;
 		m_DeletePressed = false;
+		m_UpArrowPressed = false;
+		m_DownArrowPressed = false;
 		return;
 	}
 
@@ -2399,11 +2446,13 @@ void CMenus::OnRender()
 
 	// render cursor
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CURSOR].m_Id);
+	Graphics()->WrapClamp();
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1,1,1,1);
 	IGraphics::CQuadItem QuadItem(mx, my, 24, 24);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
+	Graphics()->WrapNormal();
 
 	// render debug information
 	if(g_Config.m_Debug)
@@ -2421,7 +2470,10 @@ void CMenus::OnRender()
 	UI()->FinishCheck();
 	m_EscapePressed = false;
 	m_EnterPressed = false;
+	m_TabPressed = false;
 	m_DeletePressed = false;
+	m_UpArrowPressed = false;
+	m_DownArrowPressed = false;
 }
 
 void CMenus::RenderBackground()
@@ -2512,9 +2564,9 @@ void CMenus::SetMenuPage(int NewPage) {
 		{
 		case PAGE_START: CameraPos = CCamera::POS_START; break;
 		case PAGE_DEMOS: CameraPos = CCamera::POS_DEMOS; break;
-		case PAGE_SETTINGS: CameraPos = CCamera::POS_SETTINGS; break;
-		case PAGE_INTERNET:
-		case PAGE_LAN: CameraPos = CCamera::POS_INTERNET;
+		case PAGE_SETTINGS: CameraPos = g_Config.m_UiSettingsPage; break;
+		case PAGE_INTERNET: CameraPos = CCamera::POS_INTERNET; break;
+		case PAGE_LAN: CameraPos = CCamera::POS_LAN;
 		}
 
 		if(CameraPos != -1 && m_pClient && m_pClient->m_pCamera)
