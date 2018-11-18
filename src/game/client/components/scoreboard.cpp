@@ -357,6 +357,11 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				Graphics()->BlendNormal();
 				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_DEADTEE].m_Id);
 				Graphics()->QuadsBegin();
+				if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
+				{
+					vec4 Color = m_pClient->m_pSkins->GetColorV4(m_pClient->m_pSkins->GetTeamColor(true, 0, m_pClient->m_aClients[pInfo->m_ClientID].m_Team, SKINPART_BODY), false);
+					Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+				}
 				IGraphics::CQuadItem QuadItem(TeeOffset+TeeLength/2 - 10*TeeSizeMod, y+Spacing, 20*TeeSizeMod, 20*TeeSizeMod);
 				Graphics()->QuadsDrawTL(&QuadItem, 1);
 				Graphics()->QuadsEnd();
@@ -471,6 +476,7 @@ void CScoreboard::OnRender()
 	float Width = Screen.w;
 	float y = 100.f;
 	float w = 364.0f;
+	float FontSize = 86.0f;
 
 	if(m_pClient->m_Snap.m_pGameData)
 	{
@@ -492,38 +498,6 @@ void CScoreboard::OnRender()
 			const char *pRedClanName = GetClanName(TEAM_RED);
 			const char *pBlueClanName = GetClanName(TEAM_BLUE);
 
-			if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_GAMEOVER)
-			{
-				char aText[256];
-				str_copy(aText, Localize("Draw!"), sizeof(aText));
-
-				if(m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreRed > m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreBlue)
-				{
-					if(pRedClanName)
-						str_format(aText, sizeof(aText), Localize("%s wins!"), pRedClanName);
-					else
-						str_copy(aText, Localize("Red team wins!"), sizeof(aText));
-				}
-				else if(m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreBlue > m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreRed)
-				{
-					if(pBlueClanName)
-						str_format(aText, sizeof(aText), Localize("%s wins!"), pBlueClanName);
-					else
-						str_copy(aText, Localize("Blue team wins!"), sizeof(aText));
-				}
-
-				float tw = TextRender()->TextWidth(0, 86.0f, aText, -1);
-				TextRender()->Text(0, Width/2-tw/2, 39, 86.0f, aText, -1);
-			}
-			else if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_ROUNDOVER)
-			{
-				char aText[256];
-				str_copy(aText, Localize("Round over!"), sizeof(aText));
-
-				float tw = TextRender()->TextWidth(0, 86.0f, aText, -1);
-				TextRender()->Text(0, Width/2-tw/2, 39, 86.0f, aText, -1);
-			}
-
 			float ScoreboardHeight = RenderScoreboard(Width/2-w-1.5f, y, w, TEAM_RED, pRedClanName ? pRedClanName : Localize("Red team"), -1);
 			RenderScoreboard(Width/2+1.5f, y, w, TEAM_BLUE, pBlueClanName ? pBlueClanName : Localize("Blue team"), 1);
 
@@ -535,6 +509,46 @@ void CScoreboard::OnRender()
 			m_TotalRect.y = y;
 			m_TotalRect.w = w*2.0f+3.0f;
 			m_TotalRect.h = ScoreboardHeight+SpectatorHeight+3.0f;
+		}
+	}
+
+	Width = 400*3.0f*Graphics()->ScreenAspect();
+	Graphics()->MapScreen(0, 0, Width, 400*3.0f);
+	if(m_pClient->m_Snap.m_pGameData && (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS) && m_pClient->m_Snap.m_pGameDataTeam)
+	{
+		const char *pRedClanName = GetClanName(TEAM_RED);
+		const char *pBlueClanName = GetClanName(TEAM_BLUE);
+
+		if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_GAMEOVER)
+		{
+			char aText[256];
+			str_copy(aText, Localize("Draw!"), sizeof(aText));
+
+			if(m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreRed > m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreBlue)
+			{
+				if(pRedClanName)
+					str_format(aText, sizeof(aText), Localize("%s wins!"), pRedClanName);
+				else
+					str_copy(aText, Localize("Red team wins!"), sizeof(aText));
+			}
+			else if(m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreBlue > m_pClient->m_Snap.m_pGameDataTeam->m_TeamscoreRed)
+			{
+				if(pBlueClanName)
+					str_format(aText, sizeof(aText), Localize("%s wins!"), pBlueClanName);
+				else
+					str_copy(aText, Localize("Blue team wins!"), sizeof(aText));
+			}
+
+			float tw = TextRender()->TextWidth(0, FontSize, aText, -1);
+			TextRender()->Text(0, Width/2-tw/2, 39, FontSize, aText, -1);
+		}
+		else if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_ROUNDOVER)
+		{
+			char aText[256];
+			str_copy(aText, Localize("Round over!"), sizeof(aText));
+
+			float tw = TextRender()->TextWidth(0, FontSize, aText, -1);
+			TextRender()->Text(0, Width/2-tw/2, 39, FontSize, aText, -1);
 		}
 	}
 
