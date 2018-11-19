@@ -474,7 +474,7 @@ void CScoreboard::OnRender()
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
 
 	float Width = Screen.w;
-	float y = 100.f;
+	float y = 80.f;
 	float w = 364.0f;
 	float FontSize = 86.0f;
 
