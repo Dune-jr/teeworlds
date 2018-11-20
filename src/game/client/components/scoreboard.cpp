@@ -98,7 +98,8 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 	// do all the text without rendering it once
 	CTextCursor Cursor;
 	TextRender()->SetCursor(&Cursor, x, y, 12.0f, TEXTFLAG_ALLOW_NEWLINE);
-	Cursor.m_LineWidth = w-tw-20.0f;
+	Cursor.m_LineWidth = w-17.0f;
+	Cursor.m_StartX -= tw+3.0f;
 	bool Multiple = false;
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
@@ -108,9 +109,12 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 
 		if(Multiple)
 			TextRender()->TextEx(&Cursor, ", ", -1);
+		if(m_pClient->m_aClients[i].m_aClan[0])
+		{
+			str_format(aBuf, sizeof(aBuf), "%s ", m_pClient->m_aClients[i].m_aClan);
+			TextRender()->TextEx(&Cursor, aBuf, -1);
+		}
 		TextRender()->TextEx(&Cursor, m_pClient->m_aClients[i].m_aName, -1);
-		str_format(aBuf, sizeof(aBuf), " (%s)", m_pClient->m_aClients[i].m_aClan);
-		TextRender()->TextEx(&Cursor, aBuf, -1);
 		Multiple = true;
 	}
 
@@ -128,7 +132,8 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 	x += tw+2.0f+10.0f;
 	Multiple = false;
 	TextRender()->SetCursor(&Cursor, x, y, 12.0f, TEXTFLAG_RENDER|TEXTFLAG_ALLOW_NEWLINE);
-	Cursor.m_LineWidth = w-tw-20.0f;
+	Cursor.m_LineWidth = w-17.0f;
+	Cursor.m_StartX -= tw+3.0f;
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
 		const CNetObj_PlayerInfo *pInfo = m_pClient->m_Snap.m_paPlayerInfos[i];
@@ -137,11 +142,14 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 
 		if(Multiple)
 			TextRender()->TextEx(&Cursor, ", ", -1);
-		if(pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING)
-			TextRender()->TextColor(1.0f, 1.0f, 0.0f, 1.0f);
+		if(m_pClient->m_aClients[i].m_aClan[0])
+		{
+			str_format(aBuf, sizeof(aBuf), "%s ", m_pClient->m_aClients[i].m_aClan);
+			TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f : 1.0f, 0.7f);
+			TextRender()->TextEx(&Cursor, aBuf, -1);
+		}
+		TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f :	 1.0f, 1.0f);
 		TextRender()->TextEx(&Cursor, m_pClient->m_aClients[i].m_aName, -1);
-		str_format(aBuf, sizeof(aBuf), " (%s)", m_pClient->m_aClients[i].m_aClan);
-		TextRender()->TextEx(&Cursor, aBuf, -1);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 		Multiple = true;
 	}
@@ -474,7 +482,7 @@ void CScoreboard::OnRender()
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
 
 	float Width = Screen.w;
-	float y = 80.f;
+	float y = 85.f;
 	float w = 364.0f;
 	float FontSize = 86.0f;
 
