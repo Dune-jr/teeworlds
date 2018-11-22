@@ -180,7 +180,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	bool NoTitle = pTitle? false : true;
 
 	// count players
-	int NumPlayers = m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED] + m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE];
+	dbg_assert(Team == TEAM_RED || Team == TEAM_BLUE, "Unknown team id");
+	int NumPlayers = m_pClient->m_GameInfo.m_aTeamSize[Team];
 	m_PlayerLines = max(m_PlayerLines, NumPlayers);
 
 	char aBuf[128] = {0};
