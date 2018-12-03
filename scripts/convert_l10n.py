@@ -52,7 +52,7 @@ def parse_source():
 	return l10n
 
 def load_languagefile(filename):
-	return json.load(open(filename))
+	return json.load(open(filename), strict=False) # accept \t tabs
 
 def write_languagefile(outputfilename, l10n_src, old_l10n_data):
 	outputfilename += '.po'
@@ -71,8 +71,8 @@ def write_languagefile(outputfilename, l10n_src, old_l10n_data):
 
 	translations = {}
 	for type_ in (
-		JSON_KEY_OLDTRANSL,
-		JSON_KEY_UNTRANSL,
+		# JSON_KEY_OLDTRANSL,
+		# JSON_KEY_UNTRANSL,
 		JSON_KEY_TRANSL,
 	):
 		translations.update({
@@ -93,7 +93,10 @@ def write_languagefile(outputfilename, l10n_src, old_l10n_data):
 			obsolete=(msg in old_items),
 			occurrences=l10n_src[msg],
 		))
-	po.save(outputfilename)
+		# print("Msg:", msg)
+		# print(l10n_src[msg])
+		# print(po)
+	# po.save(outputfilename)
 
 if __name__ == '__main__':
 	l10n_src = parse_source()
@@ -111,13 +114,14 @@ if __name__ == '__main__':
 	}
 	for (msg, ctxt), occurrences in l10n_src.items():
 		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt))
-	po.save('data/languages/base.pot')
+	# po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/build/x86_64/debug/data/languages/base.pot')
+	po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/base.pot')
 
-	for filename in os.listdir("data/languages"):
+	for filename in os.listdir("/home/jruiz/documents/test/teeworlds/teeworlds-dune/datasrc/languages"):
 		try:
 			if (os.path.splitext(filename)[1] == ".json"
 					and filename != "index.json"):
-				filename = "data/languages/" + filename
+				filename = "/home/jruiz/documents/test/teeworlds/teeworlds-dune/datasrc/languages/" + filename
 				write_languagefile(filename, l10n_src, load_languagefile(filename))
 		except Exception as e:
 			print("Failed on {0}, re-raising for traceback".format(filename))
