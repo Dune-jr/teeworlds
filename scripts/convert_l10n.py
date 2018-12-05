@@ -113,7 +113,10 @@ if __name__ == '__main__':
 		'Content-Transfer-Encoding': '8bit',
 	}
 	for (msg, ctxt), occurrences in l10n_src.items():
-		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt))
+		commenttxt = ctxt
+		if(commenttxt):
+			commenttxt = 'Context: '+commenttxt
+		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt, comment=commenttxt))
 	# po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/build/x86_64/debug/data/languages/base.pot')
 	po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/base.pot')
 

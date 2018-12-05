@@ -1897,13 +1897,6 @@ void CClient::Run()
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 
-	// connect to the server if wanted
-	/*
-	if(config.cl_connect[0] != 0)
-		Connect(config.cl_connect);
-	config.cl_connect[0] = 0;
-	*/
-
 	//
 	m_FpsGraph.Init(0.0f, 120.0f);
 
@@ -2443,9 +2436,14 @@ void CClient::HandleTeeworldsConnectLink(const char *pConLink)
 	Prediction Latency
 		Upstream latency
 */
-
+#if defined(CONF_PLATFORM_MACOSX)
+extern "C" int SDL_main(int argc, char **argv_) // ignore_convention
+{
+	const char **argv = const_cast<const char **>(argv_);
+#else
 int main(int argc, const char **argv) // ignore_convention
 {
+#endif
 #if defined(CONF_FAMILY_WINDOWS)
 	#ifdef CONF_RELEASE
 	bool HideConsole = true;
