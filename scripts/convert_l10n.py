@@ -118,13 +118,13 @@ if __name__ == '__main__':
 			commenttxt = 'Context: '+commenttxt
 		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt, comment=commenttxt))
 	# po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/build/x86_64/debug/data/languages/base.pot')
-	po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/base.pot')
+	po.save(fpath='/home/jruiz/documents/test/teeworlds/tw/base.pot')
 
-	for filename in os.listdir("/home/jruiz/documents/test/teeworlds/teeworlds-dune/datasrc/languages"):
+	for filename in os.listdir("/home/jruiz/documents/test/teeworlds/tw/datasrc/languages"):
 		try:
 			if (os.path.splitext(filename)[1] == ".json"
 					and filename != "index.json"):
-				filename = "/home/jruiz/documents/test/teeworlds/teeworlds-dune/datasrc/languages/" + filename
+				filename = "/home/jruiz/documents/test/teeworlds/tw/datasrc/languages/" + filename
 				write_languagefile(filename, l10n_src, load_languagefile(filename))
 		except Exception as e:
 			print("Failed on {0}, re-raising for traceback".format(filename))
