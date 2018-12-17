@@ -713,7 +713,6 @@ void CMenus::RenderLanguageSelection(CUIRect MainView, bool Header)
 {
 	static int s_LanguageList = 0;
 	static int s_SelectedLanguage = -1;
-	static int s_OldSelected = -1;
 	static sorted_array<CLanguage> s_Languages;
 	static CListBoxState s_ListBoxState;
 
@@ -729,16 +728,6 @@ void CMenus::RenderLanguageSelection(CUIRect MainView, bool Header)
 			}
 	}
 
-	if(s_SelectedLanguage != -1 && m_ActiveListBox != ACTLB_LANG)
-	{
-		s_OldSelected = s_SelectedLanguage;
-		s_SelectedLanguage = -1;
-	}
-	if(s_SelectedLanguage == -1 && UI()->MouseInside(&MainView))
-	{
-		s_SelectedLanguage = s_OldSelected;
-		m_ActiveListBox = ACTLB_LANG;
-	}
 	int OldSelected = s_SelectedLanguage;
 
 	if(Header)
@@ -747,7 +736,10 @@ void CMenus::RenderLanguageSelection(CUIRect MainView, bool Header)
 
 	for(sorted_array<CLanguage>::range r = s_Languages.all(); !r.empty(); r.pop_front())
 	{
-		CListboxItem Item = UiDoListboxNextItem(&s_ListBoxState, &r.front());
+		bool IsActive = m_ActiveListBox == ACTLB_LANG;
+		CListboxItem Item = UiDoListboxNextItem(&s_ListBoxState, &r.front(), false, &IsActive);
+		if(IsActive)
+			m_ActiveListBox = ACTLB_LANG;
 
 		if(Item.m_Visible)
 		{
@@ -785,11 +777,12 @@ void CMenus::RenderThemeSelection(CUIRect MainView, bool Header)
 {
 	static int s_ThemeList = 0;
 	static int s_SelectedTheme = -1;
-	static int s_OldSelected = -1;
 	static CListBoxState s_ListBoxState_Theme;
 
 	if(m_lThemes.size() == 0) // not loaded yet
 	{
+		if(!g_Config.m_ClShowMenuMap)
+			str_copy(g_Config.m_ClMenuMap, "", sizeof(g_Config.m_ClMenuMap)); // cl_menu_map otherwise resets to default on loading
 		m_lThemes.add(CTheme("", false, false)); // no theme
 		Storage()->ListDirectory(IStorage::TYPE_ALL, "ui/themes", ThemeScan, (CMenus*)this);
 		Storage()->ListDirectory(IStorage::TYPE_ALL, "ui/themes", ThemeIconScan, (CMenus*)this);
@@ -801,16 +794,6 @@ void CMenus::RenderThemeSelection(CUIRect MainView, bool Header)
 			}
 	}
 
-	if(s_SelectedTheme != -1 && m_ActiveListBox != ACTLB_THEME)
-	{
-		s_OldSelected = s_SelectedTheme;
-		s_SelectedTheme = -1;
-	}
-	if(s_SelectedTheme == -1 && UI()->MouseInside(&MainView))
-	{
-		s_SelectedTheme = s_OldSelected;
-		m_ActiveListBox = ACTLB_THEME;
-	}
 	int OldSelected = s_SelectedTheme;
 
 	if(Header)
@@ -819,7 +802,10 @@ void CMenus::RenderThemeSelection(CUIRect MainView, bool Header)
 
 	for(sorted_array<CTheme>::range r = m_lThemes.all(); !r.empty(); r.pop_front())
 	{
-		CListboxItem Item = UiDoListboxNextItem(&s_ListBoxState_Theme, &r.front());
+		bool IsActive = m_ActiveListBox == ACTLB_THEME;
+		CListboxItem Item = UiDoListboxNextItem(&s_ListBoxState_Theme, &r.front(), false, &IsActive);
+		if(IsActive)
+			m_ActiveListBox = ACTLB_THEME;
 
 		if(Item.m_Visible)
 		{
@@ -993,15 +979,15 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 	GameRight.HSplitTop(Spacing, 0, &GameRight);
 	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
-	static int s_Showsocial = 0;
-	if(DoButton_CheckBox(&s_Showsocial, Localize("Show social"), g_Config.m_ClShowsocial, &Button))
-		g_Config.m_ClShowsocial ^= 1;
-
-	GameRight.HSplitTop(Spacing, 0, &GameRight);
-	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
 	static int s_ShowUserId = 0;
 	if(DoButton_CheckBox(&s_ShowUserId, Localize("Show user IDs"), g_Config.m_ClShowUserId, &Button))
 		g_Config.m_ClShowUserId ^= 1;
+
+	GameRight.HSplitTop(Spacing, 0, &GameRight);
+	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
+	static int s_Showsocial = 0;
+	if(DoButton_CheckBox(&s_Showsocial, Localize("Show social"), g_Config.m_ClShowsocial, &Button))
+		g_Config.m_ClShowsocial ^= 1;
 
 	// show chat messages button
 	if(g_Config.m_ClShowsocial)
@@ -1021,11 +1007,11 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 		Button.VSplitLeft(119.0f, &Button, 0);
 		if(g_Config.m_ClFilterchat == 0)
-			str_format(aBuf, sizeof(aBuf), Localize("everyone"));
+			str_format(aBuf, sizeof(aBuf), Localize("everyone", "Show chat messages from:"));
 		else if(g_Config.m_ClFilterchat == 1)
-			str_format(aBuf, sizeof(aBuf), Localize("friends only"));
+			str_format(aBuf, sizeof(aBuf), Localize("friends only", "Show chat messages from:"));
 		else if(g_Config.m_ClFilterchat == 2)
-			str_format(aBuf, sizeof(aBuf), Localize("no one"));
+			str_format(aBuf, sizeof(aBuf), Localize("no one", "Show chat messages from:"));
 		static CButtonContainer s_ButtonFilterchat;
 		if(DoButton_Menu(&s_ButtonFilterchat, aBuf, 0, &Button))
 			g_Config.m_ClFilterchat = (g_Config.m_ClFilterchat + 1) % 3;
@@ -1202,9 +1188,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 
 	const int NewSelected = UiDoListboxEnd(&s_ListBoxState, 0);
 	if(OldSelected != NewSelected)
-	{
-		g_Config.m_PlayerCountry = m_pClient->m_pCountryFlags->GetByIndex(NewSelected)->m_CountryCode;
-	}
+		g_Config.m_PlayerCountry = m_pClient->m_pCountryFlags->GetByIndex(NewSelected, true)->m_CountryCode;
 }
 
 void CMenus::RenderSettingsTeeBasic(CUIRect MainView)
@@ -1937,7 +1921,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 		}
 
 		Right.HSplitTop(ButtonHeight, &Button, &Right);
-		DoScrollbarOption(&g_Config.m_SndVolume, &g_Config.m_SndVolume, &Button, Localize("Volume"), 110.0f, 0, 100);
+		DoScrollbarOption(&g_Config.m_SndVolume, &g_Config.m_SndVolume, &Button, Localize("Volume"), 130.0f, 0, 100);
 	}
 	else
 	{

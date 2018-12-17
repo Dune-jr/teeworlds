@@ -128,7 +128,7 @@ private:
 	void UiDoListboxHeader(CListBoxState* pState, const CUIRect *pRect, const char *pTitle, float HeaderHeight, float Spacing);
 	void UiDoListboxStart(CListBoxState* pState, const void *pID, float RowHeight, const char *pBottomText, int NumItems,
 						int ItemsPerRow, int SelectedIndex, const CUIRect *pRect=0, bool Background=true);
-	CListboxItem UiDoListboxNextItem(CListBoxState* pState, const void *pID, bool Selected = false);
+	CListboxItem UiDoListboxNextItem(CListBoxState* pState, const void *pID, bool Selected = false, bool* pActive = NULL);
 	CListboxItem UiDoListboxNextRow(CListBoxState* pState);
 	int UiDoListboxEnd(CListBoxState* pState, bool *pItemActivated);
 
@@ -148,6 +148,7 @@ private:
 		POPUP_DELETE_DEMO,
 		POPUP_RENAME_DEMO,
 		POPUP_REMOVE_FRIEND,
+		POPUP_REMOVE_FILTER,
 		POPUP_SAVE_SKIN,
 		POPUP_DELETE_SKIN,
 		POPUP_SOUNDERROR,
@@ -176,7 +177,8 @@ private:
 		SETTINGS_GRAPHICS,
 		SETTINGS_SOUND,
 
-		ACTLB_LANG=0,
+		ACTLB_NONE=0,
+		ACTLB_LANG,
 		ACTLB_THEME,
 	};
 
@@ -331,15 +333,14 @@ private:
 	class CFriendItem
 	{
 	public:
-		const CFriendInfo *m_pFriendInfo;
 		const CServerInfo *m_pServerInfo;
 		char m_aName[MAX_NAME_LENGTH];
 		char m_aClan[MAX_CLAN_LENGTH];
+		int m_FriendState;
 		bool m_IsPlayer;
 
 		CFriendItem()
 		{
-			m_pFriendInfo = 0;
 			m_pServerInfo = 0;
 		}
 
@@ -417,6 +418,7 @@ private:
 	array<CBrowserFilter> m_lFilters;
 
 	int m_SelectedFilter;
+	int m_RemoveFilterIndex;
 
 	void LoadFilters();
 	void SaveFilters();
@@ -542,7 +544,7 @@ private:
 	//void RenderServerbrowserFriends(CUIRect View);
 	void RenderServerbrowserBottomBox(CUIRect View);
 	void RenderServerbrowserOverlay();
-	bool RenderFilterHeader(CUIRect View, int FilterIndex);
+	void RenderFilterHeader(CUIRect View, int FilterIndex);
 	int DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEntry, const CBrowserFilter *pFilter, bool Selected);
 	void RenderServerbrowser(CUIRect MainView);
 	static void ConchainFriendlistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);

@@ -367,7 +367,7 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 	{
 		if(!UI()->MouseButton(0))
 		{
-			if(Inside >= 0)
+			if(Inside)
 				ReturnValue = 1;
 			UI()->SetActiveItem(0);
 		}
@@ -376,13 +376,13 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 	{
 		if(UI()->MouseButton(0))
 			UI()->SetActiveItem(pID);
-
-		CUIRect r = View;
-		RenderTools()->DrawUIRect(&r, vec4(1.0f, 1.0f, 1.0f, 0.5f), CUI::CORNER_ALL, 4.0f);
 	}
 
 	if(Inside)
+	{
 		UI()->SetHotItem(pID);
+		RenderTools()->DrawUIRect(&View, vec4(1.0f, 1.0f, 1.0f, 0.5f), CUI::CORNER_ALL, 4.0f);
+	}
 
 	vec3 TextBaseColor = vec3(1.0f, 1.0f, 1.0f);
 	if(Selected || Inside)
@@ -575,14 +575,7 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 			CUIRect Icon;
 			Button.VSplitLeft(Button.h, &Icon, &Button);
 			Icon.y -= 0.5f;
-			/*if(!(pEntry->m_Flags&IServerBrowser::FLAG_PURE))
-			{
-				DoIcon(IMAGE_BROWSEICONS, Selected ? SPRITE_BROWSE_UNPURE_B : SPRITE_BROWSE_UNPURE_A, &Icon);
-			}
-			else*/
-			{
-				DoGameIcon(pEntry->m_aGameType, &Icon, Selected ? CGameIcon::GAMEICON_OFF : CGameIcon::GAMEICON_ON);
-			}
+			DoGameIcon(pEntry->m_aGameType, &Icon, Selected ? CGameIcon::GAMEICON_OFF : CGameIcon::GAMEICON_ON);
 
 			// gametype text
 			CTextCursor Cursor;
@@ -604,7 +597,13 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 		View.VSplitLeft(160.0f, &Info, &View);
 		RenderDetailInfo(Info, pEntry);
 
+		CUIRect NewClipArea = *UI()->ClipArea();
+		CUIRect OldClipArea = NewClipArea;
+		NewClipArea.x = View.x;
+		NewClipArea.w = View.w;
+		UI()->ClipEnable(&NewClipArea);
 		RenderDetailScoreboard(View, pEntry, 4);
+		UI()->ClipEnable(&OldClipArea);
 
 		if(ReturnValue && UI()->MouseInside(&View))
 			ReturnValue++;
@@ -616,7 +615,7 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 	return ReturnValue;
 }
 
-bool CMenus::RenderFilterHeader(CUIRect View, int FilterIndex)
+void CMenus::RenderFilterHeader(CUIRect View, int FilterIndex)
 {
 	CBrowserFilter *pFilter = &m_lFilters[FilterIndex];
 
@@ -654,8 +653,8 @@ bool CMenus::RenderFilterHeader(CUIRect View, int FilterIndex)
 	{
 		if(DoButton_SpriteClean(IMAGE_TOOLICONS, SPRITE_TOOL_X_A, &Button))
 		{
-			RemoveFilter(FilterIndex);
-			return true;
+			m_RemoveFilterIndex = FilterIndex;
+			m_Popup = POPUP_REMOVE_FILTER;
 		}
 	}
 	else
@@ -704,8 +703,6 @@ bool CMenus::RenderFilterHeader(CUIRect View, int FilterIndex)
 			}
 		}
 	}
-
-	return false;
 }
 
 void CMenus::RenderServerbrowserOverlay()
@@ -890,7 +887,7 @@ void CMenus::RenderServerbrowserOverlay()
 			RenderTools()->DrawUIRect(&View, vec4(1.0f, 1.0f, 1.0f, 0.75f), CUI::CORNER_ALL, 6.0f);
 
 			View.y += 2.0f;
-			UI()->DoLabel(&View, Localize("no players"), View.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+			UI()->DoLabel(&View, Localize("no players", "server browser message"), View.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 		}
 
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -957,27 +954,9 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 	for(int i = 0; i < NUM_BROWSER_COLS; i++)
 	{
 		if(i == COL_BROWSER_FLAG)
-		{
-			/*CUIRect Rect = ms_aBrowserCols[i].m_Rect;
-			CUIRect Icon;
+			continue;
 
-			Rect.VSplitLeft(Rect.h, &Icon, &Rect);
-			Icon.Margin(2.0f, &Icon);
-			DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_LOCK_A, &Icon);
-
-			Rect.VSplitLeft(Rect.h, &Icon, &Rect);
-			Icon.Margin(2.0f, &Icon);
-			DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_UNPURE_A, &Icon);
-
-			Rect.VSplitLeft(Rect.h, &Icon, &Rect);
-			Icon.Margin(2.0f, &Icon);
-			DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_STAR_A, &Icon);
-
-			Rect.VSplitLeft(Rect.h, &Icon, &Rect);
-			Icon.Margin(2.0f, &Icon);
-			DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_HEART_A, &Icon);*/
-		}
-		else if(DoButton_GridHeader(ms_aBrowserCols[i].m_Caption, ms_aBrowserCols[i].m_Caption, g_Config.m_BrSort == ms_aBrowserCols[i].m_Sort, &ms_aBrowserCols[i].m_Rect))
+		if(DoButton_GridHeader(ms_aBrowserCols[i].m_Caption, ms_aBrowserCols[i].m_Caption, g_Config.m_BrSort == ms_aBrowserCols[i].m_Sort, &ms_aBrowserCols[i].m_Rect))
 		{
 			if(ms_aBrowserCols[i].m_Sort != -1)
 			{
@@ -1169,9 +1148,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 		View.HSplitTop(20.0f, &Row, &View);
 
 		// render header
-		bool Deleted = RenderFilterHeader(Row, s);
-		if(Deleted && s >= m_lFilters.size())
-			break;
+		RenderFilterHeader(Row, s);
 
 		if(pFilter->Extended())
 		{
@@ -1255,7 +1232,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 	// clear button
 	{
 		static CButtonContainer s_ClearButton;
-		if(DoButton_SpriteID(&s_ClearButton, IMAGE_TOOLICONS, SPRITE_TOOL_X_A, false, &Button, CUI::CORNER_ALL, 5.0f, false))
+		if(DoButton_SpriteID(&s_ClearButton, IMAGE_TOOLICONS, SPRITE_TOOL_X_A, false, &Button, CUI::CORNER_ALL, 5.0f, true))
 		{
 			g_Config.m_BrFilterString[0] = 0;
 			UI()->SetActiveItem(&g_Config.m_BrFilterString);
@@ -1361,6 +1338,7 @@ void CMenus::RenderServerbrowserFriendTab(CUIRect View)
 		FriendItem.m_pServerInfo = 0;
 		str_copy(FriendItem.m_aName, pFriendInfo->m_aName, sizeof(FriendItem.m_aName));
 		str_copy(FriendItem.m_aClan, pFriendInfo->m_aClan, sizeof(FriendItem.m_aClan));
+		FriendItem.m_FriendState = pFriendInfo->m_aName[0] ? IFriends::FRIEND_PLAYER : IFriends::FRIEND_CLAN;
 		FriendItem.m_IsPlayer = false;
 		m_lFriendList[2].add(FriendItem);
 	}
@@ -1380,6 +1358,7 @@ void CMenus::RenderServerbrowserFriendTab(CUIRect View)
 			FriendItem.m_pServerInfo = pEntry;
 			str_copy(FriendItem.m_aName, pEntry->m_aClients[j].m_aName, sizeof(FriendItem.m_aName));
 			str_copy(FriendItem.m_aClan, pEntry->m_aClients[j].m_aClan, sizeof(FriendItem.m_aClan));
+			FriendItem.m_FriendState = pEntry->m_aClients[j].m_FriendState;
 			FriendItem.m_IsPlayer = !(pEntry->m_aClients[j].m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC);
 
 			if(pEntry->m_aClients[j].m_FriendState == IFriends::FRIEND_PLAYER)
@@ -1521,9 +1500,13 @@ void CMenus::RenderServerbrowserFriendTab(CUIRect View)
 
 	BottomArea.HSplitTop(ms_ListheaderHeight, &Button, &BottomArea);
 	RenderTools()->DrawUIRect(&Button, vec4(1.0f, 1.0f, 1.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
-	Button.VSplitLeft(Button.h, &Icon, &Label);
+	if(s_aName[0] || s_aClan[0])
+		Button.VSplitLeft(Button.h, &Icon, &Label);
+	else
+		Label = Button;
 	Label.HMargin(2.0f, &Label);
-	UI()->DoLabelScaled(&Label, Localize("Add friend"), FontSize, CUI::ALIGN_CENTER);
+	const char *pButtonText = (!s_aName[0] && !s_aClan[0]) ? Localize("Add friend/clan") : s_aName[0] ? Localize("Add friend") : Localize("Add clan");
+	UI()->DoLabelScaled(&Label, pButtonText, FontSize, CUI::ALIGN_CENTER);
 	if(s_aName[0] || s_aClan[0])
 		DoIcon(IMAGE_FRIENDICONS, UI()->MouseInside(&Button)?SPRITE_FRIEND_PLUS_A:SPRITE_FRIEND_PLUS_B, &Icon);
 	static CButtonContainer s_AddFriend;
@@ -1888,14 +1871,7 @@ void CMenus::RenderDetailInfo(CUIRect View, const CServerInfo *pInfo)
 		CUIRect Icon;
 		Row.VSplitLeft(Row.h, &Icon, &Row);
 		Icon.y -= 2.0f;
-		/*if(!(pInfo->m_Flags&IServerBrowser::FLAG_PURE))
-		{
-			DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_UNPURE_A, &Icon);
-		}
-		else*/
-		{
-			DoGameIcon(pInfo->m_aGameType, &Icon, CGameIcon::GAMEICON_FULL);
-		}
+		DoGameIcon(pInfo->m_aGameType, &Icon, CGameIcon::GAMEICON_FULL);
 		UI()->DoLabelScaled(&Row, pInfo->m_aGameType, FontSize, CUI::ALIGN_LEFT);
 
 		// version
@@ -1951,8 +1927,6 @@ void CMenus::RenderDetailScoreboard(CUIRect View, const CServerInfo *pInfo, int 
 		int Count = 0;
 
 		CUIRect Scroll;
-
-		UI()->ClipEnable(&View);
 
 		float RowWidth = (RowCount == 0) ? View.w : (View.w * 0.25f);
 		float LineHeight = 20.0f;
@@ -2091,8 +2065,6 @@ void CMenus::RenderDetailScoreboard(CUIRect View, const CServerInfo *pInfo, int 
 
 			++Count;
 		}
-
-		UI()->ClipDisable();
 	}
 }
 
@@ -2114,7 +2086,9 @@ void CMenus::RenderServerbrowserServerDetail(CUIRect View, const CServerInfo *pI
 	//RenderTools()->DrawUIRect(&View, vec4(0, 0, 0, 0.15f), CUI::CORNER_B, 4.0f);
 	ServerHeader.HMargin(2.0f, &ServerHeader);
 	UI()->DoLabelScaled(&ServerHeader, Localize("Scoreboard"), FontSize + 2.0f, CUI::ALIGN_CENTER);
+	UI()->ClipEnable(&ServerScoreboard);
 	RenderDetailScoreboard(ServerScoreboard, pInfo, 0);
+	UI()->ClipDisable();
 }
 
 void CMenus::FriendlistOnUpdate()

@@ -100,10 +100,12 @@ void IGameController::DoActivityCheck()
 	}
 }
 
-bool IGameController::GetPlayersReadyState()
+bool IGameController::GetPlayersReadyState(int WithoutID)
 {
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
+		if(i == WithoutID)
+			continue; // skip
 		if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS && !GameServer()->m_apPlayers[i]->m_IsReadyToPlay)
 			return false;
 	}
@@ -352,6 +354,8 @@ void IGameController::OnPlayerDisconnect(CPlayer *pPlayer)
 		--m_aTeamSize[pPlayer->GetTeam()];
 		m_UnbalancedTick = TBALANCE_CHECK;
 	}
+
+	CheckReadyStates(ClientID);
 }
 
 void IGameController::OnPlayerInfoChange(CPlayer *pPlayer)
@@ -365,29 +369,36 @@ void IGameController::OnPlayerReadyChange(CPlayer *pPlayer)
 		// change players ready state
 		pPlayer->m_IsReadyToPlay ^= 1;
 
-		// check if it effects current game state
+		if(m_GameState == IGS_GAME_RUNNING && !pPlayer->m_IsReadyToPlay)
+			SetGameState(IGS_GAME_PAUSED, TIMER_INFINITE); // one player isn't ready -> pause the game
+
+		CheckReadyStates();
+	}
+}
+
+// to be called when a player changes state, spectates or disconnects
+void IGameController::CheckReadyStates(int WithoutID)
+{
+	if(g_Config.m_SvPlayerReadyMode)
+	{
 		switch(m_GameState)
 		{
-		case IGS_GAME_RUNNING:
-			// one player isn't ready -> pause the game
-			if(!pPlayer->m_IsReadyToPlay)
-				SetGameState(IGS_GAME_PAUSED, TIMER_INFINITE);
-			break;
 		case IGS_WARMUP_USER:
 			// all players are ready -> end warmup
-			if(GetPlayersReadyState())
+			if(GetPlayersReadyState(WithoutID))
 				SetGameState(IGS_WARMUP_USER, 0);
 			break;
 		case IGS_GAME_PAUSED:
 			// all players are ready -> unpause the game
-			if(GetPlayersReadyState())
+			if(GetPlayersReadyState(WithoutID))
 				SetGameState(IGS_GAME_PAUSED, 0);
 			break;
+		case IGS_GAME_RUNNING:
 		case IGS_WARMUP_GAME:
 		case IGS_START_COUNTDOWN:
 		case IGS_END_MATCH:
 		case IGS_END_ROUND:
-			// not effected
+			// not affected
 			break;
 		}
 	}
@@ -736,7 +747,11 @@ void IGameController::Tick()
 				break;
 			case IGS_END_MATCH:
 				// start next match
-				CycleMap();
+				if(m_MatchCount >= m_GameInfo.m_MatchNum-1)
+					CycleMap();
+
+				if(g_Config.m_SvMatchSwap)
+					GameServer()->SwapTeams();
 				m_MatchCount++;
 				StartMatch();
 				break;
@@ -756,7 +771,7 @@ void IGameController::Tick()
 				if(!g_Config.m_SvPlayerReadyMode && m_GameStateTimer == TIMER_INFINITE)
 					SetGameState(IGS_WARMUP_USER, 0);
 				else if(m_GameStateTimer == 3 * Server()->TickSpeed())
-					StartRound();
+					StartMatch();
 				break;
 			case IGS_START_COUNTDOWN:
 			case IGS_GAME_PAUSED:
@@ -874,7 +889,17 @@ static bool IsSeparator(char c) { return c == ';' || c == ' ' || c == ',' || c =
 void IGameController::ChangeMap(const char *pToMap)
 {
 	str_copy(m_aMapWish, pToMap, sizeof(m_aMapWish));
+
+	m_MatchCount = m_GameInfo.m_MatchNum-1;
+	if(m_GameState == IGS_WARMUP_GAME || m_GameState == IGS_WARMUP_USER)
+		SetGameState(IGS_GAME_RUNNING);
 	EndMatch();
+	
+	if(m_GameState != IGS_END_MATCH)
+	{
+		// game could not been ended, force cycle
+		CycleMap();
+	}
 }
 
 void IGameController::CycleMap()
@@ -891,13 +916,6 @@ void IGameController::CycleMap()
 	}
 	if(!str_length(g_Config.m_SvMaprotation))
 		return;
-
-	if(m_MatchCount < m_GameInfo.m_MatchNum-1)
-	{
-		if(g_Config.m_SvMatchSwap)
-			GameServer()->SwapTeams();
-		return;
-	}
 
 	// handle maprotation
 	const char *pMapRotation = g_Config.m_SvMaprotation;
@@ -1129,6 +1147,7 @@ void IGameController::DoTeamChange(CPlayer *pPlayer, int Team, bool DoChatMsg)
 	}
 	OnPlayerInfoChange(pPlayer);
 	GameServer()->OnClientTeamChange(ClientID);
+	CheckReadyStates();
 
 	// reset inactivity counter when joining the game
 	if(OldTeam == TEAM_SPECTATORS)

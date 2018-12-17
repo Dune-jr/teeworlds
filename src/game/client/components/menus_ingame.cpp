@@ -371,7 +371,7 @@ void CMenus::RenderServerInfo(CUIRect MainView)
 	
 	ServerInfo.HSplitTop(2*ButtonHeight, &Label, &ServerInfo);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, CurrentServerInfo.m_aName, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
+	UI()->DoLabel(&Label, CurrentServerInfo.m_aName, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT, Label.w);
 
 	ServerInfo.HSplitTop(ButtonHeight, &Label, &ServerInfo);
 	Label.y += 2.0f;
@@ -433,6 +433,12 @@ void CMenus::RenderServerInfo(CUIRect MainView)
 	GameInfo.HSplitTop(ButtonHeight, &Label, &GameInfo);
 	Label.y += 2.0f;
 	str_format(aBuf, sizeof(aBuf), "%s: %s", Localize("Map"), CurrentServerInfo.m_aMap);
+	UI()->DoLabel(&Label, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
+
+	GameInfo.HSplitTop(ButtonHeight, &Label, &GameInfo);
+	Label.y += 2.0f;
+	str_format(aBuf, sizeof(aBuf), "%s: %s", Localize("Difficulty"), (CurrentServerInfo.m_ServerLevel == 0) ? Localize("Casual") : 
+		(CurrentServerInfo.m_ServerLevel == 1 ? Localize("Normal") : Localize("Competitive")));
 	UI()->DoLabel(&Label, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
 
 	GameInfo.HSplitTop(ButtonHeight, &Label, &GameInfo);
