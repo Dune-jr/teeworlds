@@ -98,7 +98,7 @@ void CInput::MouseRelative(float *x, float *y)
 
 	int nx = 0, ny = 0;
 	float Sens = g_Config.m_InpMousesens/100.0f;
-	
+
 	SDL_GetRelativeMouseState(&nx,&ny);
 
 	*x = nx*Sens;
@@ -219,6 +219,7 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
+					// TODO: joystick jumping
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
@@ -231,6 +232,7 @@ int CInput::Update()
 				case SDL_JOYBUTTONDOWN:
 					dbg_msg("joystick", "Joystick even happend");
 					if (Event.jbutton.button == 1) Key = KEY_MOUSE_1; // ignore_convention
+					if (Event.jbutton.button == 2) Key = KEY_MOUSE_2; // ignore_convention
 					Scancode = Key;
 					break;
 
@@ -274,7 +276,7 @@ int CInput::Update()
 					}
 					break;
 #endif
-					
+
 				// other messages
 				case SDL_QUIT:
 					return 1;
