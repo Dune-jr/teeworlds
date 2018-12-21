@@ -219,7 +219,7 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
-					// TODO: joystick jumping
+					// TODO: joystick movement
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
@@ -231,9 +231,12 @@ int CInput::Update()
 					// fall through
 				case SDL_JOYBUTTONDOWN:
 					dbg_msg("joystick", "Joystick even happend");
-					if (Event.jbutton.button == 1) Key = KEY_MOUSE_1; // ignore_convention
-					if (Event.jbutton.button == 2) Key = KEY_MOUSE_2; // ignore_convention
-					Scancode = Key;
+					if (Event.jbutton.button == 1) { Key = KEY_MOUSE_1; Scancode = Key; }
+					if (Event.jbutton.button == 2) { Key = KEY_MOUSE_2; Scancode = Key; }
+					if (Event.jbutton.button == 3) {
+						Key = KeycodeToKey(SDLK_SPACE);
+						Scancode = SDL_SCANCODE_SPACE;
+					}
 					break;
 
 				// handle mouse buttons
