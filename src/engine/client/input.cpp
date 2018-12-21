@@ -219,6 +219,21 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
+				// handle the stick of the joy
+				case SDL_JOYBUTTONUP:
+					Action = IInput::FLAG_RELEASE;
+					if (Event.jbutton.button == 1) {
+						m_ReleaseDelta = time_get() - m_LastRelease;
+						m_LastRelease = time_get();
+					}
+
+					// fall through
+				case SDL_JOYBUTTONDOWN:
+					dbg_msg("joystick", "Joystick even happend");
+					if (Event.jbutton.button == 1) Key = KEY_MOUSE_1; // ignore_convention
+					Scancode = Key;
+					break;
+
 				// handle mouse buttons
 				case SDL_MOUSEBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
