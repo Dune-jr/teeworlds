@@ -169,6 +169,8 @@ bool CInput::KeyState(int Key) const
 	return m_aInputState[Key>=KEY_MOUSE_1 ? Key : SDL_GetScancodeFromKey(KeyToKeycode(Key))];
 }
 
+// TODO: joystick aiming
+
 int CInput::Update()
 {
 	// keep the counter between 1..0xFFFF, 0 means not pressed
@@ -230,12 +232,20 @@ int CInput::Update()
 
 					// fall through
 				case SDL_JOYBUTTONDOWN:
-					dbg_msg("joystick", "Joystick even happend");
+					dbg_msg("joystick", "Joystick button down: %d", Event.jbutton.button);
 					if (Event.jbutton.button == 1) { Key = KEY_MOUSE_1; Scancode = Key; }
 					if (Event.jbutton.button == 2) { Key = KEY_MOUSE_2; Scancode = Key; }
 					if (Event.jbutton.button == 3) {
 						Key = KeycodeToKey(SDLK_SPACE);
 						Scancode = SDL_SCANCODE_SPACE;
+					}
+					if (Event.jbutton.button == 4) {
+						Key = KeycodeToKey(SDLK_a);
+						Scancode = SDL_SCANCODE_A;
+					}
+					if (Event.jbutton.button == 5) {
+						Key = KeycodeToKey(SDLK_d);
+						Scancode = SDL_SCANCODE_D;
 					}
 					break;
 
