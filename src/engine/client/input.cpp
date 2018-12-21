@@ -70,21 +70,21 @@ void CInput::Init()
 		}
 	}
 
-	// TODO: the_stick_of_joy is not deinited
-	SDL_Joystick *the_stick_of_joy = NULL;
+	m_Joystick = NULL;
+	// TODO: m_Joystick is not deinited
 	if (SDL_NumJoysticks() > 0) {
-		the_stick_of_joy = SDL_JoystickOpen(0);
+		m_Joystick = SDL_JoystickOpen(0);
 
-		if (the_stick_of_joy == NULL) {
+		if (m_Joystick == NULL) {
 			dbg_msg("joystick", "Could not open 0th Sticks of the Joy: %s", SDL_GetError());
 			return;
 		}
 
 		dbg_msg("joystick", "Opened Joystick 0");
 		dbg_msg("joystick", "Name: %s", SDL_JoystickNameForIndex(0));
-		dbg_msg("joystick", "Number of Axes: %d", SDL_JoystickNumAxes(the_stick_of_joy));
-		dbg_msg("joystick", "Number of Buttons: %d", SDL_JoystickNumButtons(the_stick_of_joy));
-		dbg_msg("joystick", "Number of Balls: %d", SDL_JoystickNumBalls(the_stick_of_joy));
+		dbg_msg("joystick", "Number of Axes: %d", SDL_JoystickNumAxes(m_Joystick));
+		dbg_msg("joystick", "Number of Buttons: %d", SDL_JoystickNumButtons(m_Joystick));
+		dbg_msg("joystick", "Number of Balls: %d", SDL_JoystickNumBalls(m_Joystick));
 	} else {
 		dbg_msg("joystick", "Not enough sticks of the joy");
 		return;
@@ -100,9 +100,11 @@ void CInput::MouseRelative(float *x, float *y)
 	float Sens = g_Config.m_InpMousesens/100.0f;
 
 	SDL_GetRelativeMouseState(&nx,&ny);
+	int jx = SDL_JoystickGetAxis(m_Joystick, 0);
+	int jy = SDL_JoystickGetAxis(m_Joystick, 1);
 
-	*x = nx*Sens;
-	*y = ny*Sens;
+	*x = (nx + jx)*Sens;
+	*y = (ny + jy)*Sens;
 }
 
 void CInput::MouseModeAbsolute()
