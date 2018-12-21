@@ -61,6 +61,34 @@ void CInput::Init()
 	// FIXME: unicode handling: use SDL_StartTextInput/SDL_StopTextInput on inputs
 
 	MouseModeRelative();
+
+	if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+	{
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
+			dbg_msg("joystick", "unable to init SDL joystick: %s", SDL_GetError());
+			return;
+		}
+	}
+
+	// TODO: the_stick_of_joy is not deinited
+	SDL_Joystick *the_stick_of_joy = NULL;
+	if (SDL_NumJoysticks() > 0) {
+		the_stick_of_joy = SDL_JoystickOpen(0);
+
+		if (the_stick_of_joy == NULL) {
+			dbg_msg("joystick", "Could not open 0th Sticks of the Joy: %s", SDL_GetError());
+			return;
+		}
+
+		dbg_msg("joystick", "Opened Joystick 0");
+		dbg_msg("joystick", "Name: %s", SDL_JoystickNameForIndex(0));
+		dbg_msg("joystick", "Number of Axes: %d", SDL_JoystickNumAxes(the_stick_of_joy));
+		dbg_msg("joystick", "Number of Buttons: %d", SDL_JoystickNumButtons(the_stick_of_joy));
+		dbg_msg("joystick", "Number of Balls: %d", SDL_JoystickNumBalls(the_stick_of_joy));
+	} else {
+		dbg_msg("joystick", "Not enough sticks of the joy");
+		return;
+	}
 }
 
 void CInput::MouseRelative(float *x, float *y)
