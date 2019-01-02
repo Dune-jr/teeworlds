@@ -1658,6 +1658,18 @@ int time_houroftheday()
 	return time_info->tm_hour;
 }
 
+int time_isxmasday()
+{
+	time_t time_data;
+	struct tm *time_info;
+
+	time(&time_data);
+	time_info = localtime(&time_data);
+	if(time_info->tm_mon == 11 && time_info->tm_mday >= 24 && time_info->tm_mday <= 26)
+		return 1;
+	return 0;
+}
+
 void str_append(char *dst, const char *src, int dst_size)
 {
 	int s = strlen(dst);
@@ -1779,6 +1791,22 @@ void str_sanitize(char *str_in)
 			*str = ' ';
 		str++;
 	}
+}
+
+/* removes all forbidden windows/unix characters in filenames*/
+char* str_sanitize_filename(char* aName)
+{
+	char *str = (char *)aName;
+	while(*str)
+	{
+		// replace forbidden characters with a whispace
+		if(*str == '/' || *str == '<' || *str == '>' || *str == ':' || *str == '"' 
+			|| *str == '/' || *str == '\\' || *str == '|' || *str == '?' || *str == '*')
+ 			*str = ' ';
+		str++;
+	}
+	str_clean_whitespaces(aName);
+	return aName;
 }
 
 /* removes leading and trailing spaces and limits the use of multiple spaces */

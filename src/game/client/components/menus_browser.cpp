@@ -419,7 +419,7 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 			Icon.Margin(2.0f, &Icon);
 			int Level = pEntry->m_ServerLevel;
 
-			DoIcon(IMAGE_LEVELICONS, Level==0 ? (Selected ? SPRITE_LEVEL_A_B : SPRITE_LEVEL_A_A) : Level==1 ? (Selected ? SPRITE_LEVEL_B_B : SPRITE_LEVEL_B_A) : (Selected ? SPRITE_LEVEL_C_B : SPRITE_LEVEL_C_A), &Icon);
+			DoIcon(IMAGE_LEVELICONS, Level==0 ? SPRITE_LEVEL_A_ON : Level==1 ? SPRITE_LEVEL_B_ON : SPRITE_LEVEL_C_ON, &Icon);
 
 			Rect.VSplitLeft(Rect.h, &Icon, &Rect);
 			Icon.Margin(2.0f, &Icon);
@@ -575,7 +575,7 @@ int CMenus::DoBrowserEntry(const void *pID, CUIRect View, const CServerInfo *pEn
 			CUIRect Icon;
 			Button.VSplitLeft(Button.h, &Icon, &Button);
 			Icon.y -= 0.5f;
-			DoGameIcon(pEntry->m_aGameType, &Icon, Selected ? CGameIcon::GAMEICON_OFF : CGameIcon::GAMEICON_ON);
+			DoGameIcon(pEntry->m_aGameType, &Icon, CGameIcon::GAMEICON_FULL);
 
 			// gametype text
 			CTextCursor Cursor;
@@ -2132,11 +2132,15 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 }
 void CMenus::DoGameIcon(const char *pName, const CUIRect *pRect, int Type)
 {
+	char aNameBuf[128];
+	str_copy(aNameBuf, pName, sizeof(aNameBuf));
+	str_sanitize_filename(aNameBuf);
+
 	// get texture
 	IGraphics::CTextureHandle Tex = m_GameIconDefault;
 	for(int i = 0; i < m_lGameIcons.size(); ++i)
 	{
-		if(!str_comp_nocase(pName, m_lGameIcons[i].m_Name))
+		if(!str_comp_nocase(aNameBuf, m_lGameIcons[i].m_Name))
 		{
 			Tex = m_lGameIcons[i].m_IconTexture;
 			break;

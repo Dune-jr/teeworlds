@@ -467,6 +467,16 @@ int time_timestamp();
 */
 int time_houroftheday();
 
+/*
+	Function: time_isxmasday
+		Checks if it's xmas
+
+	Returns:
+		1 - if it's a xmas day
+		0 - if not
+*/
+int time_isxmasday();
+
 /* Group: Network General */
 typedef struct
 {
@@ -815,6 +825,19 @@ void str_sanitize_cc(char *str);
 		- The strings are treated as zero-terminated strings.
 */
 void str_sanitize(char *str);
+
+/*
+	Function: str_sanitize_filename
+		Replaces all forbidden Windows/Unix characters with whitespace 
+		or nothing if leading or trailing.
+
+	Parameters:
+		str - String to sanitize.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+char* str_sanitize_filename(char* aName);
 
 /*
 	Function: str_check_pathname
