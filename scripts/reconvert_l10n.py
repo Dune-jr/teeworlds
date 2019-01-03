@@ -19,7 +19,10 @@ def reconvert(filename):
 				t_entry[JSON_KEY_CO] = entry.msgctxt
 			translations.append(t_entry)
 
-	result = {JSON_KEY_TRANSL: translations}
+	assert(len(filename)>len(".po"))		
+	l10n = json.load(open(filename[:-2]+"json"), strict=False)
+	
+	result = {"authors": l10n["authors"], JSON_KEY_TRANSL: translations}
 
 	json.dump(
 		result,
