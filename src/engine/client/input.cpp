@@ -221,7 +221,8 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
-					// TODO: come up with a solution without mapping joystick events to mouse/keyboard events
+					// TODO: how to work with cross
+					// TODO: how to work with sticks
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
