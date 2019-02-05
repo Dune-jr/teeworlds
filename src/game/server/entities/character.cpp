@@ -830,3 +830,9 @@ void CCharacter::PostSnap()
 {
 	m_TriggeredEvents = 0;
 }
+
+void CCharacter::SetBomb(bool b)
+{
+	m_pPlayer->SetBomb(b);
+}
+

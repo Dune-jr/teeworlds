@@ -56,6 +56,7 @@ public:
 	int GetSpectatorID() const { return m_SpectatorID; }
 	bool SetSpectatorID(int SpecMode, int SpectatorID);
 	bool m_DeadSpecMode;
+	inline bool IsDeadSpecMode() const { return m_DeadSpecMode; }
 	bool DeadCanFollow(CPlayer *pPlayer) const;
 	void UpdateDeadSpecMode();
 

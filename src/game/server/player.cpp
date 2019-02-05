@@ -7,7 +7,7 @@
 #include "gamecontroller.h"
 #include "player.h"
 
-const float g_Speed = 1.25f; // 5 times fatser than normal
+const float g_Speed = 0.25f; // 5 times fatser than normal
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
 
@@ -36,7 +36,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, bool Dummy)
 	m_Spawning = 0;
 
 	m_BombTick = Server()->Tick() + g_Speed*Server()->TickSpeed()*20;
-	m_IsBomb = m_ClientID == 0; // TODO bomb
+	m_IsBomb = 0; // TODO bomb
 }
 
 CPlayer::~CPlayer()
@@ -122,11 +122,16 @@ void CPlayer::Tick()
 					dbg_msg("bomb", "exploding");
 					GameServer()->CreateBombExplosion(m_pCharacter->GetPos());
 					GameServer()->CreateBombExplosion(m_pCharacter->GetPos() + vec2(10.0f, 10.0f));
+					GameServer()->CreateBombExplosion(m_pCharacter->GetPos() - vec2(10.0f, 10.0f));
+					GameServer()->CreateBombExplosion(m_pCharacter->GetPos() + vec2(10.0f, -10.0f));
+					GameServer()->CreateBombExplosion(m_pCharacter->GetPos() - vec2(10.0f, -10.0f));
 					m_pCharacter->Die(GetCID(), WEAPON_WORLD);
+					m_pCharacter->SetBomb(false);
+					GameServer()->PickNewBomb();
 				}
 				else
 				{
-					int64 Mask = CmaskOne(this->GetCID());
+					int64 Mask = CmaskAll();
 					GameServer()->CreateDamage(m_pCharacter->GetPos(), this->GetCID(), m_pCharacter->GetPos() /* source, might want to change */, clamp(BombLife, 1, 9), 0, false);
 					GameServer()->CreateSound(m_pCharacter->GetPos(), SOUND_HOOK_NOATTACH, Mask);
 				}

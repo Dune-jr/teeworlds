@@ -200,6 +200,30 @@ void CGameContext::CreateSound(vec2 Pos, int Sound, int64 Mask)
 	}
 }
 
+// bomb
+void CGameContext::PickNewBomb()
+{
+	dbg_msg("bomb", "picking new bomb");
+	int Count = 0;
+	int Candidates[MAX_CLIENTS];
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(!m_apPlayers[i] || m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS)
+			continue;
+	dbg_msg("bomb", "qdfsjkdks");
+		if(m_apPlayers[i]->IsDeadSpecMode())
+			continue;
+		Candidates[Count++] = i;
+	}
+	dbg_msg("bomb", "count = %d", Count);
+	if(Count > 0)
+	{
+		int NewBomb = rand() % Count;
+		dbg_msg("bomb", "newbomb = %d", NewBomb);
+		m_apPlayers[Candidates[NewBomb]]->SetBomb(true);
+	}
+}
+
 void CGameContext::SendChat(int ChatterClientID, int Mode, int To, const char *pText)
 {
 	char aBuf[256];
