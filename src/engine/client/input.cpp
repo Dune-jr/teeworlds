@@ -227,10 +227,6 @@ int CInput::Update()
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
-					if (Event.jbutton.button == 1) {
-						m_ReleaseDelta = time_get() - m_LastRelease;
-						m_LastRelease = time_get();
-					}
 
 					// fall through
 				case SDL_JOYBUTTONDOWN:
