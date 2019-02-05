@@ -50,3 +50,7 @@ cmake_install.cmake
 install_manifest.txt
 pack_*/
 rules.ninja
+
+GPATH 
+GRTAGS
+GTAGS 
