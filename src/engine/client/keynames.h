@@ -428,12 +428,12 @@ const char g_aaKeyStrings[512][20] =
 	"mouse9",
 	"mousewheelup",
 	"mousewheeldown",
-	"&422",
-	"&423",
-	"&424",
-	"&425",
-	"&426",
-	"&427",
+	"joystick0",
+	"joystick1",
+	"joystick2",
+	"joystick3",
+	"joystick4",
+	"joystick5",
 	"&428",
 	"&429",
 	"&430",
@@ -519,4 +519,3 @@ const char g_aaKeyStrings[512][20] =
 	"&510",
 	"&511",
 };
-

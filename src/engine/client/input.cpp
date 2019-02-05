@@ -229,20 +229,8 @@ int CInput::Update()
 					// fall through
 				case SDL_JOYBUTTONDOWN:
 					dbg_msg("joystick", "Joystick button down: %d", Event.jbutton.button);
-					if (Event.jbutton.button == 1) { Key = KEY_MOUSE_1; Scancode = Key; }
-					if (Event.jbutton.button == 2) { Key = KEY_MOUSE_2; Scancode = Key; }
-					if (Event.jbutton.button == 3) {
-						Key = KeycodeToKey(SDLK_SPACE);
-						Scancode = SDL_SCANCODE_SPACE;
-					}
-					if (Event.jbutton.button == 4) {
-						Key = KeycodeToKey(SDLK_a);
-						Scancode = SDL_SCANCODE_A;
-					}
-					if (Event.jbutton.button == 5) {
-						Key = KeycodeToKey(SDLK_d);
-						Scancode = SDL_SCANCODE_D;
-					}
+					Key = Event.jbutton.button + KEY_JOYSTICK_BUTTON_0;
+					Scancode = Key;
 					break;
 
 				// handle mouse buttons
