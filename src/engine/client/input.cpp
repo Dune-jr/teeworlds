@@ -171,8 +171,6 @@ bool CInput::KeyState(int Key) const
 	return m_aInputState[Key>=KEY_MOUSE_1 ? Key : SDL_GetScancodeFromKey(KeyToKeycode(Key))];
 }
 
-// TODO: joystick aiming
-
 int CInput::Update()
 {
 	// keep the counter between 1..0xFFFF, 0 means not pressed
@@ -223,7 +221,7 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
-					// TODO: joystick movement
+					// TODO: come up with a solution without mapping joystick events to mouse/keyboard events
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
