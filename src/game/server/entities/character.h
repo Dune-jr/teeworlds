@@ -47,6 +47,9 @@ public:
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
 
+	int GetBombLife() const { return m_Health + m_Armor; } // bomb
+	void DecreaseLife() { if(m_Armor) m_Armor--; else m_Health--; }
+
 	bool IncreaseHealth(int Amount);
 	bool IncreaseArmor(int Amount);
 

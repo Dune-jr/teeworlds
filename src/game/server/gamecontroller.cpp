@@ -249,13 +249,13 @@ void IGameController::OnCharacterSpawn(CCharacter *pChr)
 	{
 		// give start equipment
 		pChr->IncreaseHealth(10);
-		pChr->IncreaseArmor(5);
+		pChr->IncreaseArmor(10); // bomb
 
 		pChr->GiveWeapon(WEAPON_HAMMER, -1);
-		pChr->GiveWeapon(WEAPON_GUN, 10);
-		pChr->GiveWeapon(WEAPON_SHOTGUN, 10);
-		pChr->GiveWeapon(WEAPON_GRENADE, 10);
-		pChr->GiveWeapon(WEAPON_LASER, 5);
+		// pChr->GiveWeapon(WEAPON_GUN, 10);
+		// pChr->GiveWeapon(WEAPON_SHOTGUN, 10);
+		// pChr->GiveWeapon(WEAPON_GRENADE, 10);
+		// pChr->GiveWeapon(WEAPON_LASER, 5);
 
 		// prevent respawn
 		pChr->GetPlayer()->m_RespawnDisabled = GetStartRespawnState();
@@ -267,7 +267,7 @@ void IGameController::OnCharacterSpawn(CCharacter *pChr)
 
 		// give default weapons
 		pChr->GiveWeapon(WEAPON_HAMMER, -1);
-		pChr->GiveWeapon(WEAPON_GUN, 10);
+		// pChr->GiveWeapon(WEAPON_GUN, 10);
 	}
 }
 

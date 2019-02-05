@@ -7,6 +7,7 @@
 #include "gamecontroller.h"
 #include "player.h"
 
+const float g_Speed = 1.25f; // 5 times fatser than normal
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
 
@@ -33,6 +34,9 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, bool Dummy)
 	m_RespawnDisabled = GameServer()->m_pController->GetStartRespawnState();
 	m_DeadSpecMode = false;
 	m_Spawning = 0;
+
+	m_BombTick = Server()->Tick() + g_Speed*Server()->TickSpeed()*20;
+	m_IsBomb = m_ClientID == 0; // TODO bomb
 }
 
 CPlayer::~CPlayer()
@@ -101,6 +105,33 @@ void CPlayer::Tick()
 
 		if(!m_DeadSpecMode && m_LastActionTick != Server()->Tick())
 			++m_InactivityTickCounter;
+
+		// bomb
+		if(m_IsBomb && m_pCharacter && m_pCharacter->IsAlive())
+		{
+			int TimeLeft = (m_BombTick - Server()->Tick()) / (Server()->TickSpeed()*g_Speed);
+			int BombLife = m_pCharacter->GetBombLife();
+			if(TimeLeft != BombLife)
+			{
+				dbg_msg("bomb", "bomblife = %d", BombLife);
+				m_pCharacter->DecreaseLife(); // bomblife--
+				BombLife = m_pCharacter->GetBombLife();
+				dbg_msg("bomb", "life is now %d", BombLife);
+				if(BombLife == 0)
+				{
+					dbg_msg("bomb", "exploding");
+					GameServer()->CreateBombExplosion(m_pCharacter->GetPos());
+					GameServer()->CreateBombExplosion(m_pCharacter->GetPos() + vec2(10.0f, 10.0f));
+					m_pCharacter->Die(GetCID(), WEAPON_WORLD);
+				}
+				else
+				{
+					int64 Mask = CmaskOne(this->GetCID());
+					GameServer()->CreateDamage(m_pCharacter->GetPos(), this->GetCID(), m_pCharacter->GetPos() /* source, might want to change */, clamp(BombLife, 1, 9), 0, false);
+					GameServer()->CreateSound(m_pCharacter->GetPos(), SOUND_HOOK_NOATTACH, Mask);
+				}
+			}
+		}
 	}
 	else
 	{
@@ -109,6 +140,8 @@ void CPlayer::Tick()
 		++m_ScoreStartTick;
 		++m_LastActionTick;
 		++m_TeamChangeTick;
+
+		++m_BombTick;
  	}
 }
 
@@ -342,6 +375,8 @@ void CPlayer::Respawn()
 
 	if(m_Team != TEAM_SPECTATORS)
 		m_Spawning = true;
+
+	m_BombTick = Server()->Tick() + g_Speed*Server()->TickSpeed()*20;
 }
 
 bool CPlayer::SetSpectatorID(int SpecMode, int SpectatorID)

@@ -86,6 +86,11 @@ public:
 		int m_aSkinPartColors[6];
 	} m_TeeInfos;
 
+	bool m_IsBomb;
+	int m_BombTick;
+
+	void SetBomb(bool b) { m_IsBomb = b; }
+
 	int m_RespawnTick;
 	int m_DieTick;
 	int m_Score;
