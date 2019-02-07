@@ -18,6 +18,7 @@
 //#include "controls.h"
 //#include "camera.h"
 #include "debughud.h"
+#include "menus.h" // CButtonContainer
 
 void CDebugHud::RenderNetCorrections()
 {
@@ -153,9 +154,9 @@ void CDebugHud::MakeIcon(CUIRect Area, int ImageId, int SpriteId, float x, float
 	Graphics()->QuadsEnd();
 }
 
-void CDebugHud::RenderTuning()
+void CDebugHud::RenderHints()
 {
-	// render tuning debugging
+	// render hints
 	if(!g_Config.m_DbgTuning)
 	{
 		// const int Mode = 0; // original
@@ -163,14 +164,50 @@ void CDebugHud::RenderTuning()
 
 		const float Height = 300.0f;
 		const float Width = Height*Graphics()->ScreenAspect();
+		const float UsedWidthRatio = 5.f/7.f;
 		Graphics()->MapScreen(0.0f, 0.0f, Width, Height);
 
 		CUIRect Area;
-		Area.x = Width/8.f;
+		Area.x = (1-UsedWidthRatio)/2.f*Width;
 		Area.y = Height-70.0f;
-		Area.w = 6*Width/8.f;
+		Area.w = UsedWidthRatio*Width;
 		Area.h = 50.f;
 		RenderTools()->DrawUIRect(&Area, vec4(0.0f, 0.0f, 0.0f, 0.5f) , CUI::CORNER_ALL, 5.0f);
+
+		{
+			// quit button
+			CUIRect Button, Row;
+			float TopOffset = 12.0f;
+			Area.HSplitTop(TopOffset, &Row, 0);
+			Row.VSplitRight(TopOffset/* - 3.0f*/, &Row, &Button);
+
+			static CMenus::CButtonContainer s_QuitButton;
+			// draw red-blending button
+
+			// buttonfade
+			float Fade = 0.0f;
+			{
+				if(UI()->HotItem() == s_QuitButton.GetID())
+				{
+					s_QuitButton.m_FadeStartTime = Client()->LocalTime();
+					Fade = 0.6f;
+				}
+				else
+					Fade = max(0.0f, s_QuitButton.m_FadeStartTime -  Client()->LocalTime() + 0.6f);
+			}
+
+			vec4 Color = mix(vec4(0.f, 0.f, 0.f, 0.25f), vec4(1.f/0xff*0xf9, 1.f/0xff*0x2b, 1.f/0xff*0x2b, 0.75f), Fade /*ButtonFade(&s_QuitButton, 0.6f, 0)/0.6f*/);
+			RenderTools()->DrawUIRect(&Button, Color, CUI::CORNER_ALL, 3.0f);
+
+			// draw non-blending X
+			CUIRect XText = Button;
+			// XText.HMargin(Button.h>=20.0f?2.0f:1.0f, &XText);
+			
+			UI()->DoLabel(&XText, "\xE2\x9C\x95", XText.h*0.8f, CUI::ALIGN_CENTER);
+			if(UI()->DoButtonLogic(s_QuitButton.GetID(), "\xE2\x9C\x95", 0, &Button))
+			// if(DoButton_SpriteCleanID(&s_QuitButton, IMAGE_FRIENDICONS, SPRITE_FRIEND_X_A, &Button, false))
+				g_Config.m_DbgTuning = 1;
+		}
 		
 		Area.HMargin(10.0f, &Area);
 		Area.VMargin(10.0f, &Area);
@@ -269,8 +306,14 @@ void CDebugHud::RenderTuning()
 		
   		TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-		return;
 	}
+}
+
+void CDebugHud::RenderTuning()
+{
+	// render tuning
+	if(!g_Config.m_DbgTuning)
+		return;
 
 	CTuningParams StandardTuning;
 
@@ -333,6 +376,7 @@ void CDebugHud::RenderTuning()
 
 void CDebugHud::OnRender()
 {
+	RenderHints();
 	RenderTuning();
 	RenderNetCorrections();
 }

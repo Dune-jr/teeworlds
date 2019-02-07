@@ -7,6 +7,7 @@
 class CDebugHud : public CComponent
 {
 	void RenderNetCorrections();
+	void RenderHints();
 	void RenderTuning();
 public:
 	virtual void OnRender();
