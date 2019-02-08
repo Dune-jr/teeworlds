@@ -9,9 +9,9 @@ class CInput : public IEngineInput
 	IConsole *m_pConsole;
 
 	int m_InputGrabbed;
+	char *m_pClipboardText;
 
-	int64 m_LastRelease;
-	int64 m_ReleaseDelta;
+	bool m_MouseDoubleClick;
 
 	void AddEvent(char *pText, int Key, int Flags);
 	void Clear();
@@ -29,6 +29,7 @@ class CInput : public IEngineInput
 
 public:
 	CInput();
+	~CInput();
 
 	virtual void Init();
 
@@ -39,6 +40,8 @@ public:
 	virtual void MouseModeAbsolute();
 	virtual void MouseModeRelative();
 	virtual int MouseDoubleClick();
+	virtual const char *GetClipboardText();
+	virtual void SetClipboardText(const char *pText);
 
 	virtual int Update();
 };

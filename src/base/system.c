@@ -44,6 +44,10 @@
 	#error NOT IMPLEMENTED
 #endif
 
+#if defined(CONF_ARCH_IA32) || defined(CONF_ARCH_AMD64)
+	#include <immintrin.h> //_mm_pause
+#endif
+
 #if defined(CONF_PLATFORM_SOLARIS)
 	#include <sys/filio.h>
 #endif
@@ -238,6 +242,25 @@ void dbg_logger_file(const char *filename)
 		dbg_msg("dbg/logger", "failed to open '%s' for logging", filename);
 
 }
+
+#if defined(CONF_FAMILY_WINDOWS)
+static DWORD old_console_mode;
+
+void dbg_console_init()
+{
+	HANDLE handle;
+	DWORD console_mode;
+
+	handle = GetStdHandle(STD_INPUT_HANDLE);
+	GetConsoleMode(handle, &old_console_mode);
+	console_mode = old_console_mode & (~ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS);
+	SetConsoleMode(handle, console_mode);
+}
+void dbg_console_cleanup()
+{
+	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), old_console_mode);
+}
+#endif
 /* */
 
 typedef struct MEMHEADER
@@ -332,6 +355,11 @@ IOHANDLE io_open(const char *filename, int flags)
 unsigned io_read(IOHANDLE io, void *buffer, unsigned size)
 {
 	return fread(buffer, 1, size, (FILE*)io);
+}
+
+unsigned io_unread_byte(IOHANDLE io, unsigned char byte)
+{
+	return ungetc(byte, (FILE*)io) == EOF;
 }
 
 unsigned io_skip(IOHANDLE io, int size)
@@ -499,6 +527,14 @@ void thread_detach(void *thread)
 #endif
 }
 
+void cpu_relax()
+{
+#if defined(CONF_ARCH_IA32) || defined(CONF_ARCH_AMD64)
+	_mm_pause();
+#else
+	(void) 0;
+#endif
+}
 
 
 
@@ -1376,7 +1412,7 @@ int net_init()
 	return 0;
 }
 
-int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
+void fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 {
 #if defined(CONF_FAMILY_WINDOWS)
 	WIN32_FIND_DATA finddata;
@@ -1388,7 +1424,7 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 	handle = FindFirstFileA(buffer, &finddata);
 
 	if (handle == INVALID_HANDLE_VALUE)
-		return 0;
+		return;
 
 	str_format(buffer, sizeof(buffer), "%s/", dir);
 	length = str_length(buffer);
@@ -1403,7 +1439,7 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 	while (FindNextFileA(handle, &finddata));
 
 	FindClose(handle);
-	return 0;
+	return;
 #else
 	struct dirent *entry;
 	char buffer[1024*2];
@@ -1411,7 +1447,7 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 	DIR *d = opendir(dir);
 
 	if(!d)
-		return 0;
+		return;
 
 	str_format(buffer, sizeof(buffer), "%s/", dir);
 	length = str_length(buffer);
@@ -1425,7 +1461,7 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 
 	/* close the directory and return */
 	closedir(d);
-	return 0;
+	return;
 #endif
 }
 
@@ -1439,6 +1475,10 @@ int fs_storage_path(const char *appname, char *path, int max)
 	return 0;
 #else
 	char *home = getenv("HOME");
+	int i;
+	char *xdgdatahome = getenv("XDG_DATA_HOME");
+	char xdgpath[max];
+	
 	if(!home)
 		return -1;
 	
@@ -1447,10 +1487,6 @@ int fs_storage_path(const char *appname, char *path, int max)
 	return 0;
 #endif
 
-	int i;
-	char *xdgdatahome = getenv("XDG_DATA_HOME");
-	char xdgpath[max];
-	
 	/* old folder location */
 	snprintf(path, max, "%s/.%s", home, appname);
 	for(i = strlen(home)+2; path[i]; i++)
@@ -1499,6 +1535,31 @@ int fs_makedir(const char *path)
 		return 0;
 	return -1;
 #endif
+}
+
+int fs_makedir_recursive(const char *path)
+{
+	char buffer[2048];
+	int len;
+	int i;
+	str_copy(buffer, path, sizeof(buffer));
+	len = str_length(buffer);
+	// ignore a leading slash
+	for(i = 1; i < len; i++)
+	{
+		char b = buffer[i];
+		if(b == '/' || b == '\\')
+		{
+			buffer[i] = 0;
+			if(fs_makedir(buffer) < 0)
+			{
+				return -1;
+			}
+			buffer[i] = b;
+
+		}
+	}
+	return fs_makedir(path);
 }
 
 int fs_is_dir(const char *path)
@@ -1692,6 +1753,16 @@ void str_copy(char *dst, const char *src, int dst_size)
 	dst[dst_size-1] = 0; /* assure null termination */
 }
 
+void str_truncate(char *dst, int dst_size, const char *src, int truncation_len)
+{
+	int size = dst_size;
+	if(truncation_len < size)
+	{
+		size = truncation_len + 1;
+	}
+	str_copy(dst, src, size);
+}
+
 int str_length(const char *str)
 {
 	return (int)strlen(str);
@@ -1800,7 +1871,7 @@ char* str_sanitize_filename(char* aName)
 	while(*str)
 	{
 		// replace forbidden characters with a whispace
-		if(*str == '/' || *str == '<' || *str == '>' || *str == ':' || *str == '"' 
+		if(*str == '/' || *str == '<' || *str == '>' || *str == ':' || *str == '"'
 			|| *str == '/' || *str == '\\' || *str == '|' || *str == '?' || *str == '*')
  			*str = ' ';
 		str++;
@@ -1913,6 +1984,39 @@ int str_comp_filenames(const char *a, const char *b)
 			break;
 	}
 	return tolower(*a) - tolower(*b);
+}
+
+const char *str_startswith(const char *str, const char *prefix)
+{
+	int prefixl = str_length(prefix);
+	if(str_comp_num(str, prefix, prefixl) == 0)
+	{
+		return str + prefixl;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+const char *str_endswith(const char *str, const char *suffix)
+{
+	int strl = str_length(str);
+	int suffixl = str_length(suffix);
+	const char *strsuffix;
+	if(strl < suffixl)
+	{
+		return 0;
+	}
+	strsuffix = str + strl - suffixl;
+	if(str_comp(strsuffix, suffix) == 0)
+	{
+		return strsuffix;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 const char *str_find_nocase(const char *haystack, const char *needle)

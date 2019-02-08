@@ -14,6 +14,12 @@
 extern "C" {
 #endif
 
+#ifdef __GNUC__
+#define GNUC_ATTRIBUTE(x) __attribute__(x)
+#else
+#define GNUC_ATTRIBUTE(x)
+#endif
+
 /* Group: Debug */
 /*
 
@@ -68,7 +74,8 @@ void dbg_break();
 	See Also:
 		<dbg_assert>
 */
-void dbg_msg(const char *sys, const char *fmt, ...);
+void dbg_msg(const char *sys, const char *fmt, ...)
+GNUC_ATTRIBUTE((format(printf, 2, 3)));
 
 /* Group: Memory */
 
@@ -211,6 +218,21 @@ IOHANDLE io_open(const char *filename, int flags);
 
 */
 unsigned io_read(IOHANDLE io, void *buffer, unsigned size);
+
+/*
+	Function: io_unread_byte
+		"Unreads" a single byte, making it available for future read
+		operations.
+
+	Parameters:
+		io - Handle to the file to unread the byte from.
+		byte - Byte to unread.
+
+	Returns:
+		Returns 0 on success and 1 on failure.
+
+*/
+unsigned io_unread_byte(IOHANDLE io, unsigned char byte);
 
 /*
 	Function: io_skip
@@ -389,6 +411,12 @@ void thread_yield();
 		thread - Thread to detach
 */
 void thread_detach(void *thread);
+
+/*
+	Function: cpu_relax
+		Lets the cpu relax a bit.
+*/
+void cpu_relax();
 
 /* Group: Locks */
 typedef void* LOCK;
@@ -750,7 +778,7 @@ void str_append(char *dst, const char *src, int dst_size);
 		Copies a string to another.
 
 	Parameters:
-		dst - Pointer to a buffer that shall recive the string.
+		dst - Pointer to a buffer that shall receive the string.
 		src - String to be copied.
 		dst_size - Size of the buffer dst.
 
@@ -759,6 +787,23 @@ void str_append(char *dst, const char *src, int dst_size);
 		- Garantees that dst string will contain zero-termination.
 */
 void str_copy(char *dst, const char *src, int dst_size);
+
+/*
+	Function: str_truncate
+		Truncates a string to a given length.
+
+	Parameters:
+		dst - Pointer to a buffer that shall receive the string.
+		dst_size - Size of the buffer dst.
+		src - String to be truncated.
+		truncation_len - Maximum length of the returned string (not
+		counting the zero termination).
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+		- Garantees that dst string will contain zero-termination.
+*/
+void str_truncate(char *dst, int dst_size, const char *src, int truncation_len);
 
 /*
 	Function: str_length
@@ -787,7 +832,8 @@ int str_length(const char *str);
 		- The strings are treated as zero-terminated strings.
 		- Garantees that dst string will contain zero-termination.
 */
-void str_format(char *buffer, int buffer_size, const char *format, ...);
+void str_format(char *buffer, int buffer_size, const char *format, ...)
+GNUC_ATTRIBUTE((format(printf, 3, 4)));
 
 /*
 	Function: str_sanitize_strong
@@ -828,7 +874,7 @@ void str_sanitize(char *str);
 
 /*
 	Function: str_sanitize_filename
-		Replaces all forbidden Windows/Unix characters with whitespace 
+		Replaces all forbidden Windows/Unix characters with whitespace
 		or nothing if leading or trailing.
 
 	Parameters:
@@ -993,6 +1039,40 @@ int str_comp_num(const char *a, const char *b, const int num);
 int str_comp_filenames(const char *a, const char *b);
 
 /*
+	Function: str_startswith
+		Checks whether the string begins with a certain prefix.
+
+	Parameter:
+		str - String to check.
+		prefix - Prefix to look for.
+
+	Returns:
+		A pointer to the string str after the string prefix, or 0 if
+		the string prefix isn't a prefix of the string str.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+const char *str_startswith(const char *str, const char *prefix);
+
+/*
+	Function: str_endswith
+		Checks whether the string ends with a certain suffix.
+
+	Parameter:
+		str - String to check.
+		suffix - Suffix to look for.
+
+	Returns:
+		A pointer to the beginning of the suffix in the string str, or
+		0 if the string suffix isn't a suffix of the string str.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+const char *str_endswith(const char *str, const char *suffix);
+
+/*
 	Function: str_find_nocase
 		Finds a string inside another string case insensitive.
 
@@ -1066,12 +1146,9 @@ void str_timestamp(char *buffer, int buffer_size);
 		cb - Callback function to call for each entry
 		type - Type of the directory
 		user - Pointer to give to the callback
-
-	Returns:
-		Always returns 0.
 */
 typedef int (*FS_LISTDIR_CALLBACK)(const char *name, int is_dir, int dir_type, void *user);
-int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user);
+void fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user);
 
 /*
 	Function: fs_makedir
@@ -1088,6 +1165,19 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user);
 		in a failure if b or a does not exist.
 */
 int fs_makedir(const char *path);
+
+/*
+	Function: fs_makedir_recursive
+		Recursively create directories
+
+	Parameters:
+		path - Path to create
+
+	Returns:
+		Returns 0 on success. Negative value on failure.
+*/
+int fs_makedir_recursive(const char *path);
+
 
 /*
 	Function: fs_storage_path
@@ -1227,6 +1317,11 @@ void dbg_logger(DBG_LOGGER logger);
 void dbg_logger_stdout();
 void dbg_logger_debugger();
 void dbg_logger_file(const char *filename);
+
+#if defined(CONF_FAMILY_WINDOWS)
+void dbg_console_init();
+void dbg_console_cleanup();
+#endif
 
 typedef struct
 {

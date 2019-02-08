@@ -61,7 +61,7 @@ public:
 		// add save directories
 		if(StorageType != STORAGETYPE_BASIC)
 		{
-			if(m_NumPaths && (!m_aaStoragePaths[TYPE_SAVE][0] || !fs_makedir(m_aaStoragePaths[TYPE_SAVE])))
+			if(m_NumPaths && (!m_aaStoragePaths[TYPE_SAVE][0] || !fs_makedir_recursive(m_aaStoragePaths[TYPE_SAVE])))
 			{
 				char aPath[MAX_PATH_LENGTH];
 				if(StorageType == STORAGETYPE_CLIENT)
@@ -111,8 +111,11 @@ public:
 
 		while((pLine = LineReader.Get()))
 		{
-			if(str_length(pLine) > 9 && !str_comp_num(pLine, "add_path ", 9))
-				AddPath(pLine+9);
+			const char *pLineWithoutPrefix = str_startswith(pLine, "add_path ");
+			if(pLineWithoutPrefix)
+			{
+				AddPath(pLineWithoutPrefix);
+			}
 		}
 
 		io_close(File);

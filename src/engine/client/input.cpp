@@ -39,11 +39,19 @@ CInput::CInput()
 
 	m_InputCounter = 1;
 	m_InputGrabbed = 0;
+	m_pClipboardText = 0;
 
-	m_LastRelease = 0;
-	m_ReleaseDelta = -1;
+	m_MouseDoubleClick = false;
 
 	m_NumEvents = 0;
+}
+
+CInput::~CInput()
+{
+	if(m_pClipboardText)
+	{
+		SDL_free(m_pClipboardText);
+	}
 }
 
 void CInput::Init()
@@ -96,13 +104,29 @@ void CInput::MouseModeRelative()
 
 int CInput::MouseDoubleClick()
 {
-	if(m_ReleaseDelta >= 0 && m_ReleaseDelta < (time_freq() >> 2))
+	if(m_MouseDoubleClick)
 	{
-		m_LastRelease = 0;
-		m_ReleaseDelta = -1;
+		m_MouseDoubleClick = false;
 		return 1;
 	}
 	return 0;
+}
+
+const char *CInput::GetClipboardText()
+{
+	if(m_pClipboardText)
+	{
+		SDL_free(m_pClipboardText);
+	}
+	m_pClipboardText = SDL_GetClipboardText();
+	if(m_pClipboardText)
+		str_sanitize_cc(m_pClipboardText);
+	return m_pClipboardText;
+}
+
+void CInput::SetClipboardText(const char *pText)
+{
+	SDL_SetClipboardText(pText);
 }
 
 void CInput::Clear()
@@ -171,12 +195,6 @@ int CInput::Update()
 				case SDL_MOUSEBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
 
-					if(Event.button.button == 1) // ignore_convention
-					{
-						m_ReleaseDelta = time_get() - m_LastRelease;
-						m_LastRelease = time_get();
-					}
-
 					// fall through
 				case SDL_MOUSEBUTTONDOWN:
 					if(Event.button.button == SDL_BUTTON_LEFT) Key = KEY_MOUSE_1; // ignore_convention
@@ -188,6 +206,13 @@ int CInput::Update()
 					if(Event.button.button == 7) Key = KEY_MOUSE_7; // ignore_convention
 					if(Event.button.button == 8) Key = KEY_MOUSE_8; // ignore_convention
 					if(Event.button.button == 9) Key = KEY_MOUSE_9; // ignore_convention
+					if(Event.button.button == SDL_BUTTON_LEFT)
+					{
+						if(Event.button.clicks%2 == 0)
+							m_MouseDoubleClick = true;
+						if(Event.button.clicks == 1)
+							m_MouseDoubleClick = false;
+					}
 					Scancode = Key;
 					break;
 

@@ -8,19 +8,20 @@ def unzip(filename, where):
 		z = zipfile.ZipFile(filename, "r")
 	except:
 		return False
+
+	# remove extraction folder, if it exists
+	if os.path.exists(z.namelist()[0]):
+		shutil.rmtree(z.namelist()[0])
+
+	# extract files
 	for name in z.namelist():
 		z.extract(name, where)
 	z.close()
 	return z.namelist()[0]
 
-def downloadAll(arch, conf, targets):
+def downloadAll(targets):
 	url = "https://github.com/teeworlds/teeworlds-libs/archive/master.zip"
-	if arch == "x86_64":
-		_arch = "x64"
-	else:
-		_arch = arch
-	builddir = "build/" + arch + "/" + conf + "/"
-	
+
 	# download and unzip
 	src_package_libs = twlib.fetch_file(url)
 	if not src_package_libs:
@@ -32,14 +33,10 @@ def downloadAll(arch, conf, targets):
 		sys.exit(-1)
 	libs_dir = "teeworlds-libs-master"
 
-	if "SDL2.dll" in targets:
-		shutil.copy(libs_dir + "/sdl/windows/lib/" + _arch + "/SDL2.dll", builddir)
-	if "freetype.dll" in targets:
-		shutil.copy(libs_dir + "/freetype/windows/lib/" + _arch + "/freetype.dll", builddir)
 	if "sdl" in targets:
-		copy_tree(libs_dir + "/sdl/windows/", "other/sdl/")
+		copy_tree(libs_dir + "/sdl/", "other/sdl/")
 	if "freetype" in targets:
-		copy_tree(libs_dir + "/freetype/windows/", "other/freetype/")
+		copy_tree(libs_dir + "/freetype/", "other/freetype/")
 
 	# cleanup
 	try:
@@ -50,12 +47,10 @@ def downloadAll(arch, conf, targets):
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Download freetype and SDL library and header files for Windows.")
-    p.add_argument("--arch", default="x86", choices=["x86", "x86_64"], help="Architecture for the downloaded libraries (Default: x86)")
-    p.add_argument("--conf", default="debug", choices=["debug", "release"], help="Build type (Default: debug)")
-    p.add_argument("targets", metavar="TARGET", nargs='+', choices=["SDL2.dll", "freetype.dll", "sdl", "freetype"], help='Target to download. Valid choices are "SDL.dll", "freetype.dll", "sdl" and "freetype"')
+    p.add_argument("targets", metavar="TARGET", nargs='+', choices=["sdl", "freetype"], help='Target to download. Valid choices are "sdl" and "freetype"')
     args = p.parse_args()
 
-    downloadAll(args.arch, args.conf, args.targets)
+    downloadAll(args.targets)
 
 if __name__ == '__main__':
     main()

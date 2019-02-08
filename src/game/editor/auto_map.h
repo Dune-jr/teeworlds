@@ -37,7 +37,7 @@ public:
 
 	static bool Random(int Value)
 	{
-		return (((random_int() + Value) % 2) == 1);
+		return (random_int() % Value) == 0;
 	}
 
 	static const char *GetTypeName(int Type)
@@ -118,6 +118,23 @@ public:
 			CEILING,
 			WALLS
 		};
+
+		bool operator<(const CRule &Other) const
+		{
+			if((m_Location == CDoodadsMapper::CRule::FLOOR && Other.m_Location == CDoodadsMapper::CRule::FLOOR)
+				|| (m_Location == CDoodadsMapper::CRule::CEILING && Other.m_Location == CDoodadsMapper::CRule::CEILING))
+			{
+				if(m_Size.x < Other.m_Size.x)
+					return true;
+			}
+			else if(m_Location == CDoodadsMapper::CRule::WALLS && Other.m_Location == CDoodadsMapper::CRule::WALLS)
+			{
+				if(m_Size.y < Other.m_Size.y)
+					return true;
+			}
+
+			return false;
+		}
 	};
 
 	struct CRuleSet
