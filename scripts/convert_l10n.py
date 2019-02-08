@@ -93,9 +93,6 @@ def write_languagefile(outputfilename, l10n_src, old_l10n_data):
 			obsolete=(msg in old_items),
 			occurrences=l10n_src[msg],
 		))
-		# print("Msg:", msg)
-		# print(l10n_src[msg])
-		# print(po)
 	# po.save(outputfilename)
 
 if __name__ == '__main__':
@@ -117,14 +114,14 @@ if __name__ == '__main__':
 		if(commenttxt):
 			commenttxt = 'Context: '+commenttxt
 		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt, comment=commenttxt))
-	# po.save(fpath='/home/jruiz/documents/test/teeworlds/teeworlds-dune/build/x86_64/debug/data/languages/base.pot')
-	po.save(fpath='/home/jruiz/documents/test/teeworlds/tw/base.pot')
+	# po.save(fpath='~/tw/teeworlds/datasrc/languages/base.pot')
+	po.save('datasrc/languages/base.pot')
 
-	for filename in os.listdir("/home/jruiz/documents/test/teeworlds/tw/datasrc/languages"):
+	for filename in os.listdir("datasrc/languages"):
 		try:
 			if (os.path.splitext(filename)[1] == ".json"
 					and filename != "index.json"):
-				filename = "/home/jruiz/documents/test/teeworlds/tw/datasrc/languages/" + filename
+				filename = "datasrc/languages/" + filename
 				write_languagefile(filename, l10n_src, load_languagefile(filename))
 		except Exception as e:
 			print("Failed on {0}, re-raising for traceback".format(filename))
