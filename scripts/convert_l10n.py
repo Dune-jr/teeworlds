@@ -19,7 +19,7 @@ JSON_KEY_OLDTRANSL="old translations"
 JSON_KEY_OR="or"
 JSON_KEY_TR="tr"
 
-SOURCE_LOCALIZE_RE=re.compile(br'Localize\("(?P<str>([^"\\]|\\.)*)"(, "(?P<ctxt>([^"\\]|\\.)*)")?\)')
+SOURCE_LOCALIZE_RE=re.compile(br'Localize\("(?P<str>([^"\\]|\\.)*)"(, ?"(?P<ctxt>([^"\\]|\\.)*)")?\)')
 
 def parse_source():
 	l10n = defaultdict(lambda: [])
@@ -52,7 +52,7 @@ def parse_source():
 	return l10n
 
 def load_languagefile(filename):
-	return json.load(open(filename), strict=False) # accept \t tabs
+	return json.load(open(filename, encoding='utf-8'), strict=False) # accept \t tabs
 
 def write_languagefile(outputfilename, l10n_src, old_l10n_data):
 	outputfilename += '.po'
