@@ -114,7 +114,6 @@ if __name__ == '__main__':
 		if(commenttxt):
 			commenttxt = 'Context: '+commenttxt
 		po.append(polib.POEntry(msgid=msg, msgstr="", occurrences=occurrences, msgctxt=ctxt, comment=commenttxt))
-	# po.save(fpath='~/tw/teeworlds/datasrc/languages/base.pot')
 	po.save('datasrc/languages/base.pot')
 
 	for filename in os.listdir("datasrc/languages"):
