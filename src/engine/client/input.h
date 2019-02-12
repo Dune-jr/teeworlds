@@ -12,6 +12,8 @@ class CInput : public IEngineInput
 	int m_InputGrabbed;
 	char *m_pClipboardText;
 
+	int m_PreviousHat;
+
 	bool m_MouseDoubleClick;
 
 	void AddEvent(char *pText, int Key, int Flags);

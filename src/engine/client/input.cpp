@@ -41,6 +41,8 @@ CInput::CInput()
 	m_InputGrabbed = 0;
 	m_pClipboardText = 0;
 
+	m_PreviousHat = 0;
+
 	m_MouseDoubleClick = false;
 
 	m_NumEvents = 0;
@@ -221,7 +223,6 @@ int CInput::Update()
 					Scancode = Event.key.keysym.scancode;
 					break;
 
-					// TODO: how to work with cross
 					// TODO: how to work with sticks
 				// handle the stick of the joy
 				case SDL_JOYBUTTONUP:
@@ -232,6 +233,58 @@ int CInput::Update()
 					dbg_msg("joystick", "Joystick button down: %d", Event.jbutton.button);
 					Key = Event.jbutton.button + KEY_JOYSTICK_BUTTON_0;
 					Scancode = Key;
+					break;
+
+				case SDL_JOYHATMOTION:
+					dbg_msg("joystick", "Joystick hat down: %d", Event.jhat.value);
+					switch (Event.jhat.value) {
+					case SDL_HAT_LEFTUP:
+						Key = KEY_JOY_HAT_LEFTUP;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_UP:
+						Key = KEY_JOY_HAT_UP;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_RIGHTUP:
+						Key = KEY_JOY_HAT_RIGHTUP;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_LEFT:
+						Key = KEY_JOY_HAT_LEFT;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_CENTERED:
+						Action = IInput::FLAG_RELEASE;
+						Key = m_PreviousHat;
+						Scancode = m_PreviousHat;
+						m_PreviousHat = 0;
+						break;
+					case SDL_HAT_RIGHT:
+						Key = KEY_JOY_HAT_RIGHT;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_LEFTDOWN:
+						Key = KEY_JOY_HAT_LEFTDOWN;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_DOWN:
+						Key = KEY_JOY_HAT_DOWN;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					case SDL_HAT_RIGHTDOWN:
+						Key = KEY_JOY_HAT_RIGHTDOWN;
+						Scancode = Key;
+						m_PreviousHat = Key;
+						break;
+					}
 					break;
 
 				// handle mouse buttons
