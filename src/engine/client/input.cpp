@@ -74,6 +74,7 @@ void CInput::Init()
 
 	m_Joystick = NULL;
 	// TODO: m_Joystick is not deinited
+	// TODO: we support only a single joystick
 	if (SDL_NumJoysticks() > 0) {
 		m_Joystick = SDL_JoystickOpen(0);
 
