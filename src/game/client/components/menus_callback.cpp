@@ -116,7 +116,7 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 		}
 	}
 
-	int NumOptions = 10;
+	int NumOptions = 8;
 	float ButtonHeight = 20.0f;
 	float Spaceing = 2.0f;
 	float BackgroundHeight = (float)NumOptions*ButtonHeight+(float)NumOptions*Spaceing;
@@ -138,8 +138,51 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 	View.HSplitTop(Spaceing, 0, &View);
 	View.HSplitTop(ButtonHeight, &Button, &View);
 	pSelf->DoScrollbarOption(&g_Config.m_UiMousesens, &g_Config.m_UiMousesens, &Button, Localize("Menu mouse sens."), 5, 500);
+
+	pSelf->UiDoGetButtons(0, 5, View, ButtonHeight, Spaceing);
+
+	return BackgroundHeight;
+}
+
+float CMenus::RenderSettingsControlsJoystick(CUIRect View, void *pUser)
+{
+	CMenus *pSelf = (CMenus*)pUser;
+
+	// this is kinda slow, but whatever
+	for(int i = 0; i < g_KeyCount; i++)
+	{
+		gs_aKeys[i].m_KeyId = 0;
+		gs_aKeys[i].m_Modifier = 0;
+	}
+
+	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	{
+		for(int m = 0; m < CBinds::MODIFIER_COUNT; m++)
+		{
+			const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId, m);
+			if(!pBind[0])
+				continue;
+
+			for(int i = 0; i < g_KeyCount; i++)
+				if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+				{
+					gs_aKeys[i].m_KeyId = KeyId;
+					gs_aKeys[i].m_Modifier = m;
+					break;
+				}
+		}
+	}
+
+	int NumOptions = 2;
+	float ButtonHeight = 20.0f;
+	float Spaceing = 2.0f;
+	float BackgroundHeight = (float)NumOptions*ButtonHeight+(float)NumOptions*Spaceing;
+
+	View.HSplitTop(BackgroundHeight, &View, 0);
+	pSelf->RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+
 	//////////////////////////////
-	CUIRect Label;
+	CUIRect Button, Label;
 	// Axis X
 	View.HSplitTop(Spaceing, 0, &View);
 	View.HSplitTop(ButtonHeight, &Button, &View);
@@ -154,8 +197,6 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 	Button.VSplitMid(&Label, &Button);
 	pSelf->UI()->DoLabel(&Label, "Axis Y:", 13.0f, CUI::ALIGN_CENTER);
 	//////////////////////////////
-
-	pSelf->UiDoGetButtons(0, 5, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }

@@ -1441,6 +1441,12 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 
 	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
 	ScrollRegionAddRect(&s_ScrollRegion, LastExpandRect);
+	static int s_JoystickDropdown = 0;
+	static bool s_JoystickActive = true;
+	Split = DoIndependentDropdownMenu(&s_JoystickDropdown, &MainView, Localize("Joystick"), HeaderHeight, RenderSettingsControlsJoystick, &s_JoystickActive);
+
+	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
+	ScrollRegionAddRect(&s_ScrollRegion, LastExpandRect);
 	static int s_WeaponDropdown = 0;
 	static bool s_WeaponActive = true;
 	Split = DoIndependentDropdownMenu(&s_WeaponDropdown, &MainView, Localize("Weapon"), HeaderHeight, RenderSettingsControlsWeapon, &s_WeaponActive);

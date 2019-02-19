@@ -680,6 +680,7 @@ private:
 
 	// found in menu_callback.cpp
 	static float RenderSettingsControlsMovement(CUIRect View, void *pUser);
+	static float RenderSettingsControlsJoystick(CUIRect View, void *pUser);
 	static float RenderSettingsControlsWeapon(CUIRect View, void *pUser);
 	static float RenderSettingsControlsVoting(CUIRect View, void *pUser);
 	static float RenderSettingsControlsChat(CUIRect View, void *pUser);
