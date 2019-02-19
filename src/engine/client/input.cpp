@@ -2,6 +2,8 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "SDL.h"
 
+#include <limits>
+
 #include <base/system.h>
 #include <engine/shared/config.h>
 #include <engine/console.h>
@@ -94,6 +96,25 @@ void CInput::Init()
 	}
 }
 
+int CInput::GetSelectedAxis()
+{
+	int result = -1;
+	int max_value = std::numeric_limits<int>::min();
+
+	for (int i = 0; i < SDL_JoystickNumAxes(m_Joystick); ++i) {
+		int value = abs(SDL_JoystickGetAxis(m_Joystick, i));
+
+		if (value != 0) {
+			if (value > max_value) {
+				result = i;
+				max_value = value;
+			}
+		}
+	}
+
+	return result;
+}
+
 void CInput::MouseRelative(float *x, float *y)
 {
 	if(!m_InputGrabbed)
@@ -105,6 +126,8 @@ void CInput::MouseRelative(float *x, float *y)
 	SDL_GetRelativeMouseState(&nx,&ny);
 	int jx = SDL_JoystickGetAxis(m_Joystick, 0);
 	int jy = SDL_JoystickGetAxis(m_Joystick, 1);
+
+	dbg_msg("joystick", "Selected Axis: %d", GetSelectedAxis());
 
 	*x = (nx + jx)*Sens;
 	*y = (ny + jy)*Sens;
