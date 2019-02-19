@@ -116,7 +116,7 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 		}
 	}
 
-	int NumOptions = 8;
+	int NumOptions = 10;
 	float ButtonHeight = 20.0f;
 	float Spaceing = 2.0f;
 	float BackgroundHeight = (float)NumOptions*ButtonHeight+(float)NumOptions*Spaceing;
@@ -138,6 +138,22 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 	View.HSplitTop(Spaceing, 0, &View);
 	View.HSplitTop(ButtonHeight, &Button, &View);
 	pSelf->DoScrollbarOption(&g_Config.m_UiMousesens, &g_Config.m_UiMousesens, &Button, Localize("Menu mouse sens."), 5, 500);
+	//////////////////////////////
+	CUIRect Label;
+	// Axis X
+	View.HSplitTop(Spaceing, 0, &View);
+	View.HSplitTop(ButtonHeight, &Button, &View);
+	pSelf->RenderTools()->DrawUIRect(&Button, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	Label.y += 2.0f;
+	Button.VSplitMid(&Label, &Button);
+	pSelf->UI()->DoLabel(&Label, "Axis X:", 13.0f, CUI::ALIGN_CENTER);
+	// Axis Y
+	View.HSplitTop(Spaceing, 0, &View);
+	View.HSplitTop(ButtonHeight, &Button, &View);
+	pSelf->RenderTools()->DrawUIRect(&Button, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	Button.VSplitMid(&Label, &Button);
+	pSelf->UI()->DoLabel(&Label, "Axis Y:", 13.0f, CUI::ALIGN_CENTER);
+	//////////////////////////////
 
 	pSelf->UiDoGetButtons(0, 5, View, ButtonHeight, Spaceing);
 
