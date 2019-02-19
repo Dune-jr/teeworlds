@@ -78,7 +78,7 @@ void CInput::Init()
 		m_Joystick = SDL_JoystickOpen(0);
 
 		if (m_Joystick == NULL) {
-			dbg_msg("joystick", "Could not open 0th Sticks of the Joy: %s", SDL_GetError());
+			dbg_msg("joystick", "Could not open 0th joystick: %s", SDL_GetError());
 			return;
 		}
 
@@ -88,7 +88,7 @@ void CInput::Init()
 		dbg_msg("joystick", "Number of Buttons: %d", SDL_JoystickNumButtons(m_Joystick));
 		dbg_msg("joystick", "Number of Balls: %d", SDL_JoystickNumBalls(m_Joystick));
 	} else {
-		dbg_msg("joystick", "Not enough sticks of the joy");
+		dbg_msg("joystick", "No joysticks found");
 		return;
 	}
 }
@@ -224,7 +224,7 @@ int CInput::Update()
 					break;
 
 					// TODO: how to work with sticks
-				// handle the stick of the joy
+				// handle the joystick events
 				case SDL_JOYBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
 
