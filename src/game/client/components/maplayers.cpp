@@ -489,7 +489,7 @@ void CMapLayers::OnRender()
 				CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
 				if(m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
 				{
-					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEaster());
+					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEasterTexture());
 					Graphics()->BlendNormal();
 					RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
 				}

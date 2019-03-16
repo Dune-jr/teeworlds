@@ -13,7 +13,7 @@ CMapImages::CMapImages()
 	m_Info[MAP_TYPE_GAME].m_Count = 0;
 	m_Info[MAP_TYPE_MENU].m_Count = 0;
 
-	m_pEasterTexture = 0;
+	m_EasterIsLoaded = false;
 }
 
 void CMapImages::LoadMapImages(IMap *pMap, class CLayers *pLayers, int MapType)
@@ -65,7 +65,7 @@ void CMapImages::LoadMapImages(IMap *pMap, class CLayers *pLayers, int MapType)
 
 	// easter time, preload easter tileset
 	if(m_pClient->IsEaster())
-		GetEaster();
+		GetEasterTexture();
 }
 
 void CMapImages::OnMapLoad()
@@ -80,20 +80,16 @@ void CMapImages::OnMenuMapLoad(IMap *pMap)
 	LoadMapImages(pMap, &MenuLayers, MAP_TYPE_MENU);
 }
 
-void CMapImages::OnShutdown()
+IGraphics::CTextureHandle CMapImages::GetEasterTexture()
 {
-	delete m_pEasterTexture;
-}
-
-IGraphics::CTextureHandle CMapImages::GetEaster()
-{
-	if(!m_pEasterTexture)
+	if(!m_EasterIsLoaded)
 	{
-		m_pEasterTexture = new IGraphics::CTextureHandle(Graphics()->LoadTexture("mapres/easter.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_ARRAY_256));
-		if(!m_pEasterTexture->IsValid())
+		m_EasterTexture = Graphics()->LoadTexture("mapres/easter.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_ARRAY_256);
+		if(!m_EasterTexture.IsValid())
 			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "mapimages", "Failed to load easter.png");
+		m_EasterIsLoaded = true;
 	}
-	return *m_pEasterTexture;
+	return m_EasterTexture;
 }
 
 IGraphics::CTextureHandle CMapImages::Get(int Index) const
