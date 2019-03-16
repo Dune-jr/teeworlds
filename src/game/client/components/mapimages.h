@@ -20,7 +20,7 @@ class CMapImages : public CComponent
 		int m_Count;
 	} m_Info[NUM_MAP_TYPES];
 
-	IGraphics::CTextureHandle m_EasterTexture;
+	IGraphics::CTextureHandle* m_pEasterTexture;
 
 	void LoadMapImages(class IMap *pMap, class CLayers *pLayers, int MapType);
 
@@ -32,8 +32,9 @@ public:
 
 	virtual void OnMapLoad();
 	void OnMenuMapLoad(class IMap *pMap);
+	void OnShutdown();
 	
-	IGraphics::CTextureHandle GetEaster() const;
+	IGraphics::CTextureHandle GetEaster();
 };
 
 #endif

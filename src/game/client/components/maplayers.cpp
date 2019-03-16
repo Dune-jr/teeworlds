@@ -148,7 +148,7 @@ void CMapLayers::OnMapLoad()
 		LoadEnvPoints(Layers(), m_lEnvPoints);
 
 	// easter time, place eggs
-	if(time_iseasterday())
+	if(m_pClient->IsEaster())
 	{
 		CMapItemLayerTilemap* pGameLayer = Layers()->GameLayer();
 		if(m_aEggTiles)
@@ -405,10 +405,6 @@ void CMapLayers::OnRender()
 				PassedGameLayer = true;
 			}
 
-			// skip rendering if detail layers if not wanted
-			if(pLayer->m_Flags&LAYERFLAG_DETAIL && !g_Config.m_GfxHighDetail && !IsGameLayer && (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK))
-				continue;
-
 			if(m_Type == -1)
 				Render = true;
 			else if(m_Type == 0)
@@ -423,72 +419,79 @@ void CMapLayers::OnRender()
 					Render = true;
 			}
 
-			if(Render && pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_KP_0))
-			{
-				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-				CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
-				CServerInfo CurrentServerInfo;
-				Client()->GetServerInfo(&CurrentServerInfo);
-				char aFilename[256];
-				str_format(aFilename, sizeof(aFilename), "dumps/tilelayer_dump_%s-%d-%d-%dx%d.txt", CurrentServerInfo.m_aMap, g, l, pTMap->m_Width, pTMap->m_Height);
-				IOHANDLE File = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-				if(File)
-				{
-					for(int y = 0; y < pTMap->m_Height; y++)
-					{
-						for(int x = 0; x < pTMap->m_Width; x++)
-							io_write(File, &(pTiles[y*pTMap->m_Width + x].m_Index), sizeof(pTiles[y*pTMap->m_Width + x].m_Index));
-						io_write_newline(File);
-					}
-					io_close(File);
-				}
-			}
+			if(!Render)
+				continue;
 
-			if(Render && !IsGameLayer)
+			// skip rendering if detail layers is not wanted
+			if(!(pLayer->m_Flags&LAYERFLAG_DETAIL && !g_Config.m_GfxHighDetail && !IsGameLayer && (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK)))
 			{
-				if(pLayer->m_Type == LAYERTYPE_TILES)
+				if(pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_KP_0))
 				{
 					CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-					if(pTMap->m_Image == -1)
-						Graphics()->TextureClear();
-					else
-						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
-
 					CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
-					Graphics()->BlendNone();
-					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
-					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
-													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
-					Graphics()->BlendNormal();
-					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
-													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+					CServerInfo CurrentServerInfo;
+					Client()->GetServerInfo(&CurrentServerInfo);
+					char aFilename[256];
+					str_format(aFilename, sizeof(aFilename), "dumps/tilelayer_dump_%s-%d-%d-%dx%d.txt", CurrentServerInfo.m_aMap, g, l, pTMap->m_Width, pTMap->m_Height);
+					IOHANDLE File = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+					if(File)
+					{
+						for(int y = 0; y < pTMap->m_Height; y++)
+						{
+							for(int x = 0; x < pTMap->m_Width; x++)
+								io_write(File, &(pTiles[y*pTMap->m_Width + x].m_Index), sizeof(pTiles[y*pTMap->m_Width + x].m_Index));
+							io_write_newline(File);
+						}
+						io_close(File);
+					}
 				}
-				else if(pLayer->m_Type == LAYERTYPE_QUADS)
+
+				if(!IsGameLayer)
 				{
-					CMapItemLayerQuads *pQLayer = (CMapItemLayerQuads *)pLayer;
-					if(pQLayer->m_Image == -1)
-						Graphics()->TextureClear();
-					else
-						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pQLayer->m_Image));
+					if(pLayer->m_Type == LAYERTYPE_TILES)
+					{
+						CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+						if(pTMap->m_Image == -1)
+							Graphics()->TextureClear();
+						else
+							Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
 
-					CQuad *pQuads = (CQuad *)pLayers->Map()->GetDataSwapped(pQLayer->m_Data);
+						CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
+						Graphics()->BlendNone();
+						vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
+						RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
+														EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+						Graphics()->BlendNormal();
+						RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
+														EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+					}
+					else if(pLayer->m_Type == LAYERTYPE_QUADS)
+					{
+						CMapItemLayerQuads *pQLayer = (CMapItemLayerQuads *)pLayer;
+						if(pQLayer->m_Image == -1)
+							Graphics()->TextureClear();
+						else
+							Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pQLayer->m_Image));
 
-					//Graphics()->BlendNone();
-					//RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_OPAQUE, EnvelopeEval, this);
-					Graphics()->BlendNormal();
-					RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
+						CQuad *pQuads = (CQuad *)pLayers->Map()->GetDataSwapped(pQLayer->m_Data);
+
+						//Graphics()->BlendNone();
+						//RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_OPAQUE, EnvelopeEval, this);
+						Graphics()->BlendNormal();
+						RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
+					}
 				}
 			}
 
 			// eggs
-			if(time_iseasterday())
+			if(m_pClient->IsEaster())
 			{
 				CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
-				if(Render && m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+				if(m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
 				{
 					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEaster());
 					Graphics()->BlendNormal();
-					RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
+					RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
 				}
 			}
 		}
