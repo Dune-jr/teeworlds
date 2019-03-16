@@ -81,12 +81,127 @@ void CMapLayers::OnInit()
 
 		LoadBackgroundMap();
 	}
+
+	m_aEggTiles = 0;
+}
+
+static void PlaceEggDoodads(int LayerWidth, int LayerHeight, CTile* aOutTiles, CTile* aGameLayerTiles, int ItemWidth, int ItemHeight, const int* aImageTileID, int ImageTileIDCount, int Freq)
+{
+	for(int y = 0; y < LayerHeight; y++)
+	{
+		for(int x = 0; x < LayerWidth; x++)
+		{
+			bool Overlap = false;
+			bool ObstructedByWall = false;
+			bool HasGround = true;
+
+			for(int iy = 0; iy < ItemHeight; iy++)
+			{
+				for(int ix = 0; ix < ItemWidth; ix++)
+				{
+					if(y+iy >= LayerHeight || x+ix >= LayerWidth)
+						continue;
+
+					int Tid = (y+iy) * LayerWidth + (x+ix);
+					int DownTid = (y+iy+1) * LayerWidth + (x+ix);
+
+					if(aOutTiles[Tid].m_Index != 0)
+					{
+						Overlap = true;
+						break;
+					}
+
+					if(aGameLayerTiles[Tid].m_Index == 1)
+					{
+						ObstructedByWall = true;
+						break;
+					}
+
+					if(iy == ItemHeight-1 && aGameLayerTiles[DownTid].m_Index != 1)
+					{
+						HasGround = false;
+						break;
+					}
+				}
+			}
+
+			if(!Overlap && !ObstructedByWall && HasGround && random_int()%Freq == 0)
+			{
+				const int BaskerStartID = aImageTileID[random_int()%ImageTileIDCount];
+
+				for(int iy = 0; iy < ItemHeight; iy++)
+				{
+					for(int ix = 0; ix < ItemWidth; ix++)
+					{
+						int Tid = (y+iy) * LayerWidth + (x+ix);
+						aOutTiles[Tid].m_Index = BaskerStartID + iy * 16 + ix;
+					}
+				}
+			}
+		}
+	}
 }
 
 void CMapLayers::OnMapLoad()
 {
 	if(Layers())
 		LoadEnvPoints(Layers(), m_lEnvPoints);
+
+	// easter time, place eggs
+	if(true)
+	{
+		CMapItemLayerTilemap* pGameLayer = Layers()->GameLayer();
+		if(m_aEggTiles)
+			mem_free(m_aEggTiles);
+
+		m_EggLayerWidth = pGameLayer->m_Width;
+		m_EggLayerHeight = pGameLayer->m_Height;
+		m_aEggTiles = (CTile*)mem_alloc(sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight,1);
+		mem_zero(m_aEggTiles, sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight);
+		CTile* aGameLayerTiles = (CTile*)Layers()->Map()->GetData(pGameLayer->m_Data);
+
+		// first pass: baskets
+		static const int s_aBasketIDs[] = {
+			38,
+			86
+		};
+
+		static const int s_BasketCount = sizeof(s_aBasketIDs)/sizeof(s_aBasketIDs[0]);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 3, 2, s_aBasketIDs, s_BasketCount, 250);
+
+		// second pass: double eggs
+		static const int s_aDoubleEggIDs[] = {
+			9,
+			25,
+			41,
+			57,
+			73,
+			89
+		};
+
+		static const int s_DoubleEggCount = sizeof(s_aDoubleEggIDs)/sizeof(s_aDoubleEggIDs[0]);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 2, 1, s_aDoubleEggIDs, s_DoubleEggCount, 100);
+
+		// third pass: eggs
+		static const int s_aEggIDs[] = {
+			1, 2, 3, 4, 5,
+			17, 18, 19, 20,
+			33, 34, 35, 36,
+			49, 50,     52,
+			65, 66,
+				82,
+				98
+		};
+
+		static const int s_EggCount = sizeof(s_aEggIDs)/sizeof(s_aEggIDs[0]);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 1, 1, s_aEggIDs, s_EggCount, 30);
+	}
+}
+
+void CMapLayers::OnShutdown()
+{
+	mem_free(m_aEggTiles);
+	m_aEggTiles = 0;
 }
 
 void CMapLayers::LoadEnvPoints(const CLayers *pLayers, array<CEnvPoint>& lEnvPoints)
@@ -287,7 +402,7 @@ void CMapLayers::OnRender()
 			if(pLayer == (CMapItemLayer*)pLayers->GameLayer())
 			{
 				IsGameLayer = true;
-				PassedGameLayer = 1;
+				PassedGameLayer = true;
 			}
 
 			// skip rendering if detail layers if not wanted
@@ -363,6 +478,17 @@ void CMapLayers::OnRender()
 					Graphics()->BlendNormal();
 					RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
 				}
+			}
+
+			// EGGS
+			CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
+			if(Render && m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+			{
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEaster());
+				Graphics()->BlendNormal();
+				vec4 Color(1, 1, 1, 1);
+				RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
+				Graphics()->TextureClear();
 			}
 		}
 		if(!g_Config.m_GfxNoclip)

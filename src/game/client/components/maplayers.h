@@ -19,6 +19,10 @@ class CMapLayers : public CComponent
 	array<CEnvPoint> m_lEnvPoints;
 	array<CEnvPoint> m_lEnvPointsMenu;
 
+	CTile* m_aEggTiles;
+	int m_EggLayerWidth;
+	int m_EggLayerHeight;
+
 	static void EnvelopeEval(float TimeOffset, int Env, float *pChannels, void *pUser);
 
 	void LoadEnvPoints(const CLayers *pLayers, array<CEnvPoint>& lEnvPoints);
