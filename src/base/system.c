@@ -1732,6 +1732,18 @@ int time_isxmasday()
 	return 0;
 }
 
+int time_iseasterday()
+{
+	time_t time_data;
+	struct tm *time_info;
+
+	time(&time_data);
+	time_info = localtime(&time_data);
+	if(time_info->tm_mon == 03 && time_info->tm_mday >= 01 && time_info->tm_mday <= 02)
+		return 1;
+	return 0;
+}
+
 void str_append(char *dst, const char *src, int dst_size)
 {
 	int s = strlen(dst);

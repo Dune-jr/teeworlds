@@ -505,6 +505,16 @@ int time_houroftheday();
 */
 int time_isxmasday();
 
+/*
+	Function: time_iseasterday
+		Checks if it's egg time
+
+	Returns:
+		1 - if it's an egg day
+		0 - if not
+*/
+int time_iseasterday();
+
 /* Group: Network General */
 typedef struct
 {

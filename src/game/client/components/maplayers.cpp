@@ -148,7 +148,7 @@ void CMapLayers::OnMapLoad()
 		LoadEnvPoints(Layers(), m_lEnvPoints);
 
 	// easter time, place eggs
-	if(true)
+	if(time_iseasterday())
 	{
 		CMapItemLayerTilemap* pGameLayer = Layers()->GameLayer();
 		if(m_aEggTiles)
@@ -480,15 +480,16 @@ void CMapLayers::OnRender()
 				}
 			}
 
-			// EGGS
-			CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
-			if(Render && m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+			// eggs
+			if(time_iseasterday())
 			{
-				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEaster());
-				Graphics()->BlendNormal();
-				vec4 Color(1, 1, 1, 1);
-				RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
-				Graphics()->TextureClear();
+				CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
+				if(Render && m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+				{
+					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEaster());
+					Graphics()->BlendNormal();
+					RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
+				}
 			}
 		}
 		if(!g_Config.m_GfxNoclip)

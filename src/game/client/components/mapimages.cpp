@@ -62,7 +62,7 @@ void CMapImages::LoadMapImages(IMap *pMap, class CLayers *pLayers, int MapType)
 	}
 
 	// easter time, load easter tileset
-	if(true)
+	if(time_iseasterday())
 	{
 		m_EasterTexture = Graphics()->LoadTexture("mapres/easter.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_ARRAY_256);
 		if(!m_EasterTexture.IsValid())
