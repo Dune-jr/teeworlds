@@ -19,7 +19,7 @@ class CMapLayers : public CComponent
 	array<CEnvPoint> m_lEnvPoints;
 	array<CEnvPoint> m_lEnvPointsMenu;
 
-	CTile* m_aEggTiles;
+	CTile* m_pEggTiles;
 	int m_EggLayerWidth;
 	int m_EggLayerHeight;
 

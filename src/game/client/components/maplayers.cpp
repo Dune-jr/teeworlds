@@ -82,7 +82,7 @@ void CMapLayers::OnInit()
 		LoadBackgroundMap();
 	}
 
-	m_aEggTiles = 0;
+	m_pEggTiles = 0;
 }
 
 static void PlaceEggDoodads(int LayerWidth, int LayerHeight, CTile* aOutTiles, CTile* aGameLayerTiles, int ItemWidth, int ItemHeight, const int* aImageTileID, int ImageTileIDCount, int Freq)
@@ -151,13 +151,13 @@ void CMapLayers::OnMapLoad()
 	if(m_pClient->IsEaster())
 	{
 		CMapItemLayerTilemap* pGameLayer = Layers()->GameLayer();
-		if(m_aEggTiles)
-			mem_free(m_aEggTiles);
+		if(m_pEggTiles)
+			mem_free(m_pEggTiles);
 
 		m_EggLayerWidth = pGameLayer->m_Width;
 		m_EggLayerHeight = pGameLayer->m_Height;
-		m_aEggTiles = (CTile*)mem_alloc(sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight,1);
-		mem_zero(m_aEggTiles, sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight);
+		m_pEggTiles = (CTile*)mem_alloc(sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight,1);
+		mem_zero(m_pEggTiles, sizeof(CTile) * m_EggLayerWidth * m_EggLayerHeight);
 		CTile* aGameLayerTiles = (CTile*)Layers()->Map()->GetData(pGameLayer->m_Data);
 
 		// first pass: baskets
@@ -167,7 +167,7 @@ void CMapLayers::OnMapLoad()
 		};
 
 		static const int s_BasketCount = sizeof(s_aBasketIDs)/sizeof(s_aBasketIDs[0]);
-		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 3, 2, s_aBasketIDs, s_BasketCount, 250);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_pEggTiles, aGameLayerTiles, 3, 2, s_aBasketIDs, s_BasketCount, 250);
 
 		// second pass: double eggs
 		static const int s_aDoubleEggIDs[] = {
@@ -180,7 +180,7 @@ void CMapLayers::OnMapLoad()
 		};
 
 		static const int s_DoubleEggCount = sizeof(s_aDoubleEggIDs)/sizeof(s_aDoubleEggIDs[0]);
-		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 2, 1, s_aDoubleEggIDs, s_DoubleEggCount, 100);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_pEggTiles, aGameLayerTiles, 2, 1, s_aDoubleEggIDs, s_DoubleEggCount, 100);
 
 		// third pass: eggs
 		static const int s_aEggIDs[] = {
@@ -194,14 +194,17 @@ void CMapLayers::OnMapLoad()
 		};
 
 		static const int s_EggCount = sizeof(s_aEggIDs)/sizeof(s_aEggIDs[0]);
-		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_aEggTiles, aGameLayerTiles, 1, 1, s_aEggIDs, s_EggCount, 30);
+		PlaceEggDoodads(m_EggLayerWidth, m_EggLayerHeight, m_pEggTiles, aGameLayerTiles, 1, 1, s_aEggIDs, s_EggCount, 30);
 	}
 }
 
 void CMapLayers::OnShutdown()
 {
-	mem_free(m_aEggTiles);
-	m_aEggTiles = 0;
+	if(m_pEggTiles)
+	{
+		mem_free(m_pEggTiles);
+		m_pEggTiles = 0;
+	}
 }
 
 void CMapLayers::LoadEnvPoints(const CLayers *pLayers, array<CEnvPoint>& lEnvPoints)
@@ -487,11 +490,11 @@ void CMapLayers::OnRender()
 			if(m_pClient->IsEaster())
 			{
 				CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
-				if(m_aEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+				if(m_pEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
 				{
 					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEasterTexture());
 					Graphics()->BlendNormal();
-					RenderTools()->RenderTilemap(m_aEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
+					RenderTools()->RenderTilemap(m_pEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
 				}
 			}
 		}
