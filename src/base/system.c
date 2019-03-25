@@ -99,7 +99,7 @@ void dbg_msg(const char *sys, const char *fmt, ...)
 	msg = (char *)str + len;
 
 	va_start(args, fmt);
-#if defined(CONF_FAMILY_WINDOWS)
+#if defined(CONF_FAMILY_WINDOWS) && !defined(__GNUC__)
 	_vsprintf_p(msg, sizeof(str)-len, fmt, args);
 #else
 	vsnprintf(msg, sizeof(str)-len, fmt, args);
@@ -1154,7 +1154,7 @@ int net_udp_recv(NETSOCKET sock, NETADDR *addr, void *data, int maxsize)
 	socklen_t fromlen;// = sizeof(sockaddrbuf);
 	int bytes = 0;
 
-	if(bytes == 0 && sock.ipv4sock >= 0)
+	if(sock.ipv4sock >= 0)
 	{
 		fromlen = sizeof(struct sockaddr_in);
 		bytes = recvfrom(sock.ipv4sock, (char*)data, maxsize, 0, (struct sockaddr *)&sockaddrbuf, &fromlen);
@@ -1771,7 +1771,7 @@ int str_length(const char *str)
 
 void str_format(char *buffer, int buffer_size, const char *format, ...)
 {
-#if defined(CONF_FAMILY_WINDOWS)
+#if defined(CONF_FAMILY_WINDOWS) && !defined(__GNUC__)
 	va_list ap;
 	va_start(ap, format);
 	_vsprintf_p(buffer, buffer_size, format, ap);
@@ -1913,7 +1913,46 @@ void str_clean_whitespaces(char *str_in)
 	}
 }
 
+/* removes leading and trailing spaces */
+void str_clean_whitespaces_simple(char *str_in)
+{
+	char *read = str_in;
+	char *write = str_in;
+
+	/* skip initial whitespace */
+	while(*read == ' ')
+		read++;
+
+	/* end of read string is detected in the loop */
+	while(1)
+	{
+		/* skip whitespace */
+		int found_whitespace = 0;
+		for(; *read == ' ' && !found_whitespace; read++)
+			found_whitespace = 1;
+		/* if not at the end of the string, put a found whitespace here */
+		if(*read)
+		{
+			if(found_whitespace)
+				*write++ = ' ';
+			*write++ = *read++;
+		}
+		else
+		{
+			*write = 0;
+			break;
+		}
+	}
+}
+
 char *str_skip_to_whitespace(char *str)
+{
+	while(*str && (*str != ' ' && *str != '\t' && *str != '\n'))
+		str++;
+	return str;
+}
+
+const char *str_skip_to_whitespace_const(const char *str)
 {
 	while(*str && (*str != ' ' && *str != '\t' && *str != '\n'))
 		str++;
@@ -2340,7 +2379,7 @@ void secure_random_fill(void *bytes, unsigned length)
 #if defined(CONF_FAMILY_WINDOWS)
 	if(!CryptGenRandom(secure_random_data.provider, length, bytes))
 	{
-		dbg_msg("secure", "CryptGenRandom failed, last_error=%d", GetLastError());
+		dbg_msg("secure", "CryptGenRandom failed, last_error=%lu", GetLastError());
 		dbg_break();
 	}
 #else
