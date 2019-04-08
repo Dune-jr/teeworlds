@@ -1738,7 +1738,7 @@ int time_iseasterday()
 	struct tm *time_info;
 
 	time(&time_data_now);
-	time_info = localtime(&time_data);
+	time_info = localtime(&time_data_now);
 
 	// compute Easter day (Sunday) using https://en.wikipedia.org/w/index.php?title=Computus&oldid=890710285#Anonymous_Gregorian_algorithm
 	int Y = time_info->tm_year + 1900;
@@ -1763,7 +1763,7 @@ int time_iseasterday()
 		time_data = time_data_now + day_offset*(60*60*24);
 		time_info = localtime(&time_data);
 
-		if(time_info->tm_mon == month && time_info->tm_mday == day)
+		if(time_info->tm_mon == month-1 && time_info->tm_mday == day)
 			return 1;
 	}
 	return 0;
