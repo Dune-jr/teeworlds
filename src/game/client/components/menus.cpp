@@ -36,7 +36,6 @@
 float CMenus::ms_ButtonHeight = 25.0f;
 float CMenus::ms_ListheaderHeight = 17.0f;
 float CMenus::ms_FontmodHeight = 0.8f;
-float CMenus::ms_BackgroundAlpha = 0.25f;
 
 
 CMenus::CMenus()
@@ -52,7 +51,6 @@ CMenus::CMenus()
 	m_NeedRestartGraphics = false;
 	m_NeedRestartSound = false;
 	m_NeedRestartPlayer = false;
-	m_NeedRestartTee = false;
 	m_TeePartSelected = SKINPART_BODY;
 	m_aSaveSkinName[0] = 0;
 	m_RefreshSkinSelector = true;
@@ -61,6 +59,7 @@ CMenus::CMenus()
 	m_SeekBarActivatedTime = 0;
 	m_SeekBarActive = true;
 	m_UseMouseButtons = true;
+	m_SkinModified = false;
 
 	SetMenuPage(PAGE_START);
 	m_MenuPageOld = PAGE_START;
@@ -241,7 +240,7 @@ int CMenus::DoButton_MenuTabTop(CButtonContainer *pBC, const char *pText, int Ch
 	float Fade = ButtonFade(pBC, Seconds, Checked);
 	float FadeVal = (Fade/Seconds)*FontAlpha;
 
-	RenderTools()->DrawUIRect(pRect, vec4(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f*Alpha+FadeVal*0.5f), Corners, r);
+	RenderTools()->DrawUIRect(pRect, vec4(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, g_Config.m_ClMenuAlpha/100.0f*Alpha+FadeVal*0.5f), Corners, r);
 	CUIRect Temp;
 	pRect->HMargin(pRect->h>=20.0f?2.0f:1.0f, &Temp);
 	Temp.HMargin((Temp.h*FontFactor)/2.0f, &Temp);
@@ -314,7 +313,7 @@ int CMenus::DoButton_GridHeaderIcon(CButtonContainer *pBC, int ImageID, int Spri
 }
 */
 
-int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const char *pBoxText, const CUIRect *pRect, bool Checked)
+int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const char *pBoxText, const CUIRect *pRect, bool Checked, bool Locked)
 {
 	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
@@ -328,7 +327,11 @@ int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const c
 	c.Margin(2.0f, &c);
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MENUICONS].m_Id);
 	Graphics()->QuadsBegin();
-	Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+	if(Locked)
+		Graphics()->SetColor(0.5f, 0.5f, 0.5f, 1.0f);
+	else
+		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+
 	if(UI()->HotItem() == pID)
 	{
 		RenderTools()->SelectSprite(SPRITE_MENU_CHECKBOX_HOVER);
@@ -349,9 +352,16 @@ int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const c
 	return UI()->DoButtonLogic(pID, pText, 0, pRect);
 }
 
-int CMenus::DoButton_CheckBox(const void *pID, const char *pText, int Checked, const CUIRect *pRect)
+int CMenus::DoButton_CheckBox(const void *pID, const char *pText, int Checked, const CUIRect *pRect, bool Locked)
 {
-	return DoButton_CheckBox_Common(pID, pText, "", pRect, Checked);
+	if(Locked)
+	{
+		TextRender()->TextColor(0.5f, 0.5f, 0.5f, 1.0f);
+		DoButton_CheckBox_Common(pID, pText, "", pRect, Checked, Locked);
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+		return false;
+	}
+	return DoButton_CheckBox_Common(pID, pText, "", pRect, Checked, Locked);
 }
 
 int CMenus::DoButton_CheckBox_Number(const void *pID, const char *pText, int Checked, const CUIRect *pRect)
@@ -1204,8 +1214,8 @@ void CMenus::RenderMenubar(CUIRect Rect)
 		CUIRect Left, Right;
 		Box.VSplitLeft(ButtonWidth*4.0f + Spacing * 3.0f, &Left, 0);
 		Box.VSplitRight(ButtonWidth, 0, &Right);
-		RenderTools()->DrawUIRect4(&Left, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
-		RenderTools()->DrawUIRect4(&Right, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+		RenderTools()->DrawUIRect4(&Left, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), CUI::CORNER_B, 5.0f);
+		RenderTools()->DrawUIRect4(&Right, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), CUI::CORNER_B, 5.0f);
 
 		Left.HSplitBottom(25.0f, 0, &Left);
 		Right.HSplitBottom(25.0f, 0, &Right);
@@ -1250,7 +1260,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 
 		// render header background
 		if(Client()->State() == IClient::STATE_OFFLINE)
-			RenderTools()->DrawUIRect4(&Box, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+			RenderTools()->DrawUIRect4(&Box, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), CUI::CORNER_B, 5.0f);
 
 		Box.HSplitBottom(25.0f, 0, &Box);
 
@@ -1330,7 +1340,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			Box.VSplitLeft(ButtonWidth*2.0f+Spacing, &Left, 0);
 
 			// render header backgrounds
-			RenderTools()->DrawUIRect4(&Left, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+			RenderTools()->DrawUIRect4(&Left, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), CUI::CORNER_B, 5.0f);
 			
 			Left.HSplitBottom(25.0f, 0, &Left);
 
@@ -1358,7 +1368,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 		else if(m_MenuPage == PAGE_DEMOS)
 		{
 			// render header background
-			RenderTools()->DrawUIRect4(&Box, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+			RenderTools()->DrawUIRect4(&Box, vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), CUI::CORNER_B, 5.0f);
 
 			Box.HSplitBottom(25.0f, 0, &Box);
 
@@ -1446,7 +1456,7 @@ void CMenus::RenderBackButton(CUIRect MainView)
 	// render background
 	MainView.HSplitBottom(60.0f, 0, &MainView);
 	MainView.VSplitLeft(ButtonWidth, &MainView, 0);
-	RenderTools()->DrawUIRect4(&MainView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
+	RenderTools()->DrawUIRect4(&MainView, vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, g_Config.m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	// back to main menu
 	CUIRect Button;
@@ -2167,6 +2177,7 @@ int CMenus::Render()
 		{
 			CUIRect Yes, No;
 			Box.HSplitTop(27.0f, 0, &Box);
+			Box.VMargin(10.0f, &Box);
 			UI()->DoLabel(&Box, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
 
 			// buttons
@@ -2202,6 +2213,7 @@ int CMenus::Render()
 			CUIRect Yes, No, EditBox;
 
 			Box.HSplitTop(27.0f, 0, &Box);
+			Box.VMargin(10.0f, &Box);
 			UI()->DoLabel(&Box, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
 
 			Box.HSplitBottom(Box.h/2.0f, 0, &Box);
@@ -2343,6 +2355,7 @@ int CMenus::Render()
 		{
 			CUIRect Yes, No;
 			Box.HSplitTop(27.0f, 0, &Box);
+			Box.VMargin(10.0f, &Box);
 			UI()->DoLabel(&Box, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
 
 			// buttons
@@ -2426,11 +2439,20 @@ void CMenus::SetActive(bool Active)
 		if(Client()->State() == IClient::STATE_ONLINE)
 		{
 			m_pClient->OnRelease();
+			if(Client()->State() == IClient::STATE_ONLINE && m_SkinModified)
+			{
+				m_SkinModified = false;
+				m_pClient->SendSkinChange();
+			}
 		}
 	}
-	else if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	else
 	{
-		m_pClient->OnRelease();
+		m_SkinModified = false;
+		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+		{
+			m_pClient->OnRelease();
+		}
 	}
 }
 

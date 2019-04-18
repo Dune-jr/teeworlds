@@ -327,6 +327,7 @@ public:
 	virtual bool Fullscreen(bool State) = 0;
 	virtual void SetWindowBordered(bool State) = 0;
 	virtual bool SetWindowScreen(int Index) = 0;
+	virtual bool GetDesktopResolution(int Index, int *pDesktopWidth, int* pDesktopHeight) = 0;
 	virtual int GetWindowScreen() = 0;
 	virtual int WindowActive() = 0;
 	virtual int WindowOpen() = 0;
@@ -464,9 +465,6 @@ public:
 	virtual bool SetVSync(bool State);
 
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen);
-
-	virtual int GetDesktopScreenWidth() const { return m_DesktopScreenWidth; }
-	virtual int GetDesktopScreenHeight() const { return m_DesktopScreenHeight; }
 
 	// syncronization
 	virtual void InsertSignal(semaphore *pSemaphore);
