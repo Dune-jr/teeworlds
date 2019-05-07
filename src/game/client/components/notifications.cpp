@@ -30,14 +30,19 @@ void CNotifications::Con_SndToggle(IConsole::IResult *pResult, void *pUserData)
 	pSelf->m_SoundToggleTime = pSelf->Client()->LocalTime();
 }
 
+void CNotifications::FlagCapture()
+{
+	m_SoundToggleTime = Client()->LocalTime();
+}
+
 void CNotifications::RenderSoundNotification()
 {
 	const float Height = 300.0f;
 	const float Width = Height*Graphics()->ScreenAspect();
 	const float ItemHeight = 20.f;
 	const float ItemWidth = 20.f;
-	const float DisplayTime = 1.5f; // includes FadeTime
-	const float FadeTime = 0.6f;
+	const float DisplayTime = 0.6f; // includes FadeTime
+	const float FadeTime = 0.45f;
 	const float RemainingDisplayTime = max(0.0f, m_SoundToggleTime + DisplayTime - Client()->LocalTime());
 
 	if(RemainingDisplayTime == 0.0f)
@@ -57,10 +62,10 @@ void CNotifications::RenderSoundNotification()
 	Color = mix(vec4(Color.r, Color.g, Color.b, 0.0f), Color, 0.8*Fade);
 	RenderTools()->DrawUIRect(&Area, Color, CUI::CORNER_ALL, 3.0f);
 
-	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_SOUNDICONS].m_Id);
+	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1.0f*Fade, 1.0f*Fade, 1.0f*Fade, 1.0f*Fade);
-	RenderTools()->SelectSprite(g_Config.m_SndEnable ? SPRITE_SOUNDICON_ON : SPRITE_SOUNDICON_MUTE);
+	RenderTools()->SelectSprite(g_Config.m_SndEnable ? SPRITE_FLAG_RED : SPRITE_FLAG_BLUE);
 	IGraphics::CQuadItem QuadItem(Area.x, Area.y, Area.w, Area.h);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();

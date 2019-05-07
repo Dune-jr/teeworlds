@@ -622,6 +622,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 			case GAMEMSG_CTF_GRAB:
 				if(m_SuppressEvents)
 					return;
+				gs_Notifications.FlagCapture();
 				if(m_LocalClientID != -1 && (m_aClients[m_LocalClientID].m_Team != aParaI[0] || (m_Snap.m_SpecInfo.m_Active &&
 								((m_Snap.m_SpecInfo.m_SpectatorID != -1 && m_aClients[m_Snap.m_SpecInfo.m_SpectatorID].m_Team != aParaI[0]) ||
 								(m_Snap.m_SpecInfo.m_SpecMode == SPEC_FLAGRED && aParaI[0] != TEAM_RED) ||
@@ -640,6 +641,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 				}
 				break;
 			case GAMEMSG_CTF_CAPTURE:
+				gs_Notifications.FlagCapture();
 				m_pSounds->Enqueue(CSounds::CHN_GLOBAL, SOUND_CTF_CAPTURE);
 				int ClientID = clamp(aParaI[1], 0, MAX_CLIENTS - 1);
 				m_aStats[ClientID].m_FlagCaptures++;
