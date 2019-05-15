@@ -2346,19 +2346,28 @@ void CEditor2::RenderMapOverlay()
 	}
 }
 
+
+CEditor2::CButtonFormat::CButtonFormat() : ColNormal(StyleColorButton), ColHover(StyleColorButtonHover), ColPress(StyleColorButtonPressed), ColBorder(StyleColorButtonBorder), FontSize(10), Align(-1) { }
+CEditor2::CButtonFormat& CEditor2::CButtonFormat::Normal(vec4 Col) 	{ ColNormal = Col; return *this; }
+CEditor2::CButtonFormat& CEditor2::CButtonFormat::Hover(vec4 Col) 	{ ColHover = Col; return *this; }
+CEditor2::CButtonFormat& CEditor2::CButtonFormat::Press(vec4 Col) 	{ ColPress = Col; return *this; }
+CEditor2::CButtonFormat& CEditor2::CButtonFormat::Border(vec4 Col) 	{ ColBorder = Col; return *this; }
+
 void CEditor2::RenderTopPanel(CUIRect TopPanel)
 {
 	CUIRect SecondaryPanel;
 	TopPanel.HSplitMid(&TopPanel, &SecondaryPanel);
 	DrawRect(TopPanel, StyleColorBg);
-	DrawRect(SecondaryPanel, vec4(0.16, 0.1, 0.185, 1));
+	// DrawRect(SecondaryPanel, vec4(0.16, 0.1, 0.185, 1));
+	DrawRect(SecondaryPanel, vec4(66/255.f, 66/255.f, 66/255.f, 1));
 
 	CUIRect ButtonRect;
 	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
 
 	CUIRect FileMenuRect = {ButtonRect.x, ButtonRect.y+ButtonRect.h, 120, 20*7};
 	static CUIButton s_File;
-	if(UiButton(ButtonRect, "File", &s_File, 10, 0))
+	// if(UiButton(ButtonRect, "File", &s_File, 10, 0))
+	if(UiButtonEx(ButtonRect, "File", &s_File, CButtonFormat().Normal(vec4(0,0,0,0)).Center()))
 	{
 		m_UiCurrentPopupID = POPUP_MENU_FILE;
 		m_UiCurrentPopupRect = FileMenuRect;
@@ -2366,7 +2375,7 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 
 	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
 	static CUIButton s_Help;
-	if(UiButton(ButtonRect, "Help", &s_Help, 10, 0))
+	if(UiButtonEx(ButtonRect, "Help", &s_Help, CButtonFormat().Normal(vec4(0,0,0,0)).Center()))
 	{
 
 	}
