@@ -504,7 +504,7 @@ class CEditor2: public IEditor
 	bool UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, float FontSize = 10, int Align = -1);
 	bool UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pButState,
 					vec4 ColNormal, vec4 ColHover, vec4 ColPress, vec4 ColBorder, float FontSize, int Align = -1);
-	class CButtonFormat
+	class CButtonStyle
 	{
 	public:
 		vec4 ColNormal;
@@ -514,17 +514,15 @@ class CEditor2: public IEditor
 		float FontSize;
 		int Align;
 
-		CButtonFormat();
-		inline CButtonFormat& Normal(vec4 Col);
-		inline CButtonFormat& Hover(vec4 Col);
-		inline CButtonFormat& Press(vec4 Col);
-		inline CButtonFormat& Border(vec4 Col);
-		inline CButtonFormat& Center() { Align = 0; return *this; }
+		CButtonStyle();
+		inline CButtonStyle& Normal(vec4 Col);
+		inline CButtonStyle& Hover(vec4 Col);
+		inline CButtonStyle& Press(vec4 Col);
+		inline CButtonStyle& Border(vec4 Col);
+		inline CButtonStyle& Center() { Align = 0; return *this; }
 	};
-	bool UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pButState, CButtonFormat Cols)
-	{
-		return UiButtonEx(Rect, pText, pButState, Cols.ColNormal, Cols.ColHover, Cols.ColPress, Cols.ColBorder, Cols.FontSize, Cols.Align);
-	}
+	bool UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, CButtonStyle Cols = CButtonStyle())
+		{ return UiButtonEx(Rect, pText, pButState, Cols.ColNormal, Cols.ColHover, Cols.ColPress, Cols.ColBorder, Cols.FontSize, Cols.Align); }
 	bool UiTextInput(const CUIRect& Rect, char* pText, int TextMaxLength, CUITextInput* pInputState);
 	bool UiIntegerInput(const CUIRect& Rect, int* pInteger, CUIIntegerInput* pInputState);
 	bool UiSliderInt(const CUIRect& Rect, int* pInteger, int Min, int Max, CUIButton* pInputState);

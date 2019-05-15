@@ -2347,11 +2347,11 @@ void CEditor2::RenderMapOverlay()
 }
 
 
-CEditor2::CButtonFormat::CButtonFormat() : ColNormal(StyleColorButton), ColHover(StyleColorButtonHover), ColPress(StyleColorButtonPressed), ColBorder(StyleColorButtonBorder), FontSize(10), Align(-1) { }
-CEditor2::CButtonFormat& CEditor2::CButtonFormat::Normal(vec4 Col) 	{ ColNormal = Col; return *this; }
-CEditor2::CButtonFormat& CEditor2::CButtonFormat::Hover(vec4 Col) 	{ ColHover = Col; return *this; }
-CEditor2::CButtonFormat& CEditor2::CButtonFormat::Press(vec4 Col) 	{ ColPress = Col; return *this; }
-CEditor2::CButtonFormat& CEditor2::CButtonFormat::Border(vec4 Col) 	{ ColBorder = Col; return *this; }
+CEditor2::CButtonStyle::CButtonStyle() : ColNormal(StyleColorButton), ColHover(StyleColorButtonHover), ColPress(StyleColorButtonPressed), ColBorder(StyleColorButtonBorder), FontSize(10), Align(-1) { }
+CEditor2::CButtonStyle& CEditor2::CButtonStyle::Normal(vec4 Col) 	{ ColNormal = Col; return *this; }
+CEditor2::CButtonStyle& CEditor2::CButtonStyle::Hover(vec4 Col) 	{ ColHover = Col; return *this; }
+CEditor2::CButtonStyle& CEditor2::CButtonStyle::Press(vec4 Col) 	{ ColPress = Col; return *this; }
+CEditor2::CButtonStyle& CEditor2::CButtonStyle::Border(vec4 Col) 	{ ColBorder = Col; return *this; }
 
 void CEditor2::RenderTopPanel(CUIRect TopPanel)
 {
@@ -2367,7 +2367,7 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	CUIRect FileMenuRect = {ButtonRect.x, ButtonRect.y+ButtonRect.h, 120, 20*7};
 	static CUIButton s_File;
 	// if(UiButton(ButtonRect, "File", &s_File, 10, 0))
-	if(UiButtonEx(ButtonRect, "File", &s_File, CButtonFormat().Normal(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRect, "File", &s_File, CButtonStyle().Normal(vec4(0,0,0,0)).Center()))
 	{
 		m_UiCurrentPopupID = POPUP_MENU_FILE;
 		m_UiCurrentPopupRect = FileMenuRect;
@@ -2375,7 +2375,7 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 
 	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
 	static CUIButton s_Help;
-	if(UiButtonEx(ButtonRect, "Help", &s_Help, CButtonFormat().Normal(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRect, "Help", &s_Help, CButtonStyle().Normal(vec4(0,0,0,0)).Center()))
 	{
 
 	}
