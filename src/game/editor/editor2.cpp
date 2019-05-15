@@ -48,15 +48,27 @@ static char s_aEdMsg[256];
 // TODO: move this elsewhere
 #define ARR_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
 
-const vec4 StyleColorBg(0.03, 0, 0.085, 1);
-const vec4 StyleColorButton(0.062, 0, 0.19, 1);
+// Fisico
+const vec4 StyleColorBg(31/255.f, 31/255.f, 31/255.f, 1);
+const vec4 StyleColorButton(95/255.f, 95/255.f, 95/255.f, 1);
 const vec4 StyleColorButtonBorder(0.18, 0.00, 0.56, 1);
 const vec4 StyleColorButtonHover(0.28, 0.10, 0.64, 1);
-const vec4 StyleColorButtonPressed(0.13, 0, 0.40, 1);
+const vec4 StyleColorButtonPressed(84/255.f, 122/255.f, 181/255.f, 1);
 const vec4 StyleColorInputSelected(0,0.2,1,1);
 const vec4 StyleColorTileSelection(0.0, 0.31, 1, 0.4);
 const vec4 StyleColorTileHover(1, 1, 1, 0.25);
 const vec4 StyleColorTileHoverBorder(0.0, 0.31, 1, 1);
+
+// LordSk
+// const vec4 StyleColorBg(0.03, 0, 0.085, 1);
+// const vec4 StyleColorButton(0.062, 0, 0.19, 1);
+// const vec4 StyleColorButtonBorder(0.18, 0.00, 0.56, 1);
+// const vec4 StyleColorButtonHover(0.28, 0.10, 0.64, 1);
+// const vec4 StyleColorButtonPressed(0.13, 0, 0.40, 1);
+// const vec4 StyleColorInputSelected(0,0.2,1,1);
+// const vec4 StyleColorTileSelection(0.0, 0.31, 1, 0.4);
+// const vec4 StyleColorTileHover(1, 1, 1, 0.25);
+// const vec4 StyleColorTileHoverBorder(0.0, 0.31, 1, 1);
 
 inline float fract(float f)
 {
@@ -2336,14 +2348,17 @@ void CEditor2::RenderMapOverlay()
 
 void CEditor2::RenderTopPanel(CUIRect TopPanel)
 {
+	CUIRect SecondaryPanel;
+	TopPanel.HSplitMid(&TopPanel, &SecondaryPanel);
 	DrawRect(TopPanel, StyleColorBg);
+	DrawRect(SecondaryPanel, vec4(0.16, 0.1, 0.185, 1));
 
 	CUIRect ButtonRect;
 	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
 
 	CUIRect FileMenuRect = {ButtonRect.x, ButtonRect.y+ButtonRect.h, 120, 20*7};
 	static CUIButton s_File;
-	if(UiButton(ButtonRect, "File", &s_File))
+	if(UiButton(ButtonRect, "File", &s_File, 10, 0))
 	{
 		m_UiCurrentPopupID = POPUP_MENU_FILE;
 		m_UiCurrentPopupRect = FileMenuRect;
@@ -2351,31 +2366,13 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 
 	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
 	static CUIButton s_Help;
-	if(UiButton(ButtonRect, "Help", &s_Help))
+	if(UiButton(ButtonRect, "Help", &s_Help, 10, 0))
 	{
 
 	}
 
-	// tools
-	if(m_Page == PAGE_MAP_EDITOR)
-	{
-		TopPanel.VSplitLeft(50.0f, 0, &TopPanel);
-		static CUIButton s_ButTools[TOOL_COUNT_];
-		const char* aButName[] = {
-			"Se",
-			"Di",
-			"TB"
-		};
-
-		for(int t = 0; t < TOOL_COUNT_; t++)
-		{
-			TopPanel.VSplitLeft(25.0f, &ButtonRect, &TopPanel);
-			if(UiButtonEx(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t ? StyleColorInputSelected : StyleColorButton, m_Tool == t ? StyleColorInputSelected : StyleColorButtonHover, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f))
-				ChangeTool(t);
-		}
-	}
-
-	TopPanel.VSplitRight(20.0f, &TopPanel, 0);
+	// page switcher
+	TopPanel.VSplitRight(5.0f, &TopPanel, 0);
 	TopPanel.VSplitRight(120.0f, &TopPanel, &ButtonRect);
 	static CUIButton s_PageSwitchButton;
 	if(m_Page == PAGE_MAP_EDITOR)
@@ -2388,6 +2385,48 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 		if(UiButton(ButtonRect, "Go to Map Editor", &s_PageSwitchButton))
 			ChangePage(PAGE_MAP_EDITOR);
 	}
+
+	// tools
+	if(m_Page != PAGE_MAP_EDITOR)
+		return;
+
+	static CUIButton s_ButTools[TOOL_COUNT_];
+	const char* aButName[] = {
+		"Selection",
+		"Dimension",
+		"Brush"
+	};
+	TopPanel.VSplitLeft(50.0f, 0, &TopPanel);
+
+	for(int t = 0; t < TOOL_COUNT_; t++)
+	{
+		TopPanel.VSplitLeft(60.0f, &ButtonRect, &TopPanel);
+		if(UiButtonEx(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t ? StyleColorInputSelected : StyleColorButton, m_Tool == t ? StyleColorInputSelected : StyleColorButtonHover, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0))
+			ChangeTool(t);
+	}
+
+	TopPanel.VSplitLeft(30.0f, 0, &TopPanel);
+	TopPanel.VSplitLeft(150.0f, &ButtonRect, &TopPanel);
+	UiButtonEx(ButtonRect, aButName[m_Tool], &s_ButTools[m_Tool], StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0);
+	{
+		CUIRect ToolsRect = ButtonRect;
+		ToolsRect.y += 20.0f;
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_Fill;
+		UiButton(ButtonRect, "Fill", &s_Fill, 10, 0);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_Cut;
+		UiButton(ButtonRect, "Cut", &s_Cut, 10, 0);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_Move;
+		UiButton(ButtonRect, "Move", &s_Move, 10, 0);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_XX;
+		UiButton(ButtonRect, "X/X", &s_XX, 10, 0);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_YY;
+		UiButton(ButtonRect, "Y/Y", &s_YY, 10, 0);
+	}
 }
 
 void CEditor2::RenderMapEditorUI()
@@ -2397,7 +2436,7 @@ void CEditor2::RenderMapEditorUI()
 
 	CUIRect TopPanel, RightPanel, DetailPanel, ToolColumnRect;
 	UiScreenRect.VSplitRight(150.0f, &m_UiMainViewRect, &RightPanel);
-	m_UiMainViewRect.HSplitTop(20.0f, &TopPanel, &m_UiMainViewRect);
+	m_UiMainViewRect.HSplitTop(40.0f, &TopPanel, &m_UiMainViewRect);
 
 	RenderTopPanel(TopPanel);
 
@@ -2525,21 +2564,21 @@ void CEditor2::RenderMapEditorUI()
 	ToolColumnRect.HSplitTop(150.0f, 0, &ToolColumnRect);
 	ToolColumnRect.VMargin(Margin, &ToolColumnRect);
 
-	static CUIButton s_ButTools[TOOL_COUNT_];
-	const char* aButName[] = {
-		"Se",
-		"Di",
-		"TB"
-	};
+	// static CUIButton s_ButTools[TOOL_COUNT_];
+	// const char* aButName[] = {
+	// 	"Se",
+	// 	"Di",
+	// 	"TB"
+	// };
 
-	for(int t = 0; t < TOOL_COUNT_; t++)
-	{
-		ToolColumnRect.HSplitTop(Margin, 0, &ToolColumnRect);
-		ToolColumnRect.HSplitTop(ButtonSize, &ButtonRect, &ToolColumnRect);
+	// for(int t = 0; t < TOOL_COUNT_; t++)
+	// {
+	// 	ToolColumnRect.HSplitTop(Margin, 0, &ToolColumnRect);
+	// 	ToolColumnRect.HSplitTop(ButtonSize, &ButtonRect, &ToolColumnRect);
 
-		if(UiButtonSelect(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t))
-			ChangeTool(t);
-	}
+	// 	if(UiButtonSelect(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t))
+	// 		ChangeTool(t);
+	// }
 
 	// selection context buttons
 	if(m_UiSelectedLayerID != -1 && IsToolSelect() && m_TileSelection.IsSelected())
@@ -4061,7 +4100,7 @@ void CEditor2::RenderAssetManager()
 
 	CUIRect TopPanel, RightPanel, MainViewRect;
 	UiScreenRect.VSplitRight(150.0f, &MainViewRect, &RightPanel);
-	MainViewRect.HSplitTop(20.0f, &TopPanel, &MainViewRect);
+	MainViewRect.HSplitTop(40.0f, &TopPanel, &MainViewRect);
 
 	DrawRect(RightPanel, StyleColorBg);
 
@@ -4358,12 +4397,21 @@ void CEditor2::DrawRectBorderMiddle(const CUIRect& Rect, const vec4& Color, floa
 	Graphics()->QuadsEnd();
 }
 
-inline void CEditor2::DrawText(const CUIRect& Rect, const char* pText, float FontSize, vec4 Color)
+inline void CEditor2::DrawText(const CUIRect& Rect, const char* pText, float FontSize, vec4 Color, int Align)
 {
 	const float OffY = (Rect.h - FontSize - 3.0f) * 0.5f;
 	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, Rect.x + OffY, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
-	TextRender()->TextShadowed(&Cursor, pText, -1, vec2(0,0), vec4(0,0,0,0), Color);
+	if(Align == -1)
+	{
+		TextRender()->SetCursor(&Cursor, Rect.x + OffY, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
+		TextRender()->TextShadowed(&Cursor, pText, -1, vec2(0,0), vec4(0,0,0,0), Color);
+	}
+	else if(Align == 0)
+	{
+		float tw = TextRender()->TextWidth(0, FontSize, pText, -1, -1.0f);
+		TextRender()->SetCursor(&Cursor, Rect.x + /*OffY*/ + Rect.w/2-tw/2, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
+		TextRender()->TextShadowed(&Cursor, pText, -1, vec2(0,0), vec4(0,0,0,0), Color);	
+	}
 }
 
 void CEditor2::UiDoButtonBehavior(const void* pID, const CUIRect& Rect, CUIButton* pButState)
@@ -4429,14 +4477,14 @@ bool CEditor2::UiDoMouseDragging(const void* pID, const CUIRect& Rect, CUIMouseD
 	return Return;
 }
 
-bool CEditor2::UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, float FontSize)
+bool CEditor2::UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, float FontSize, int Align)
 {
 	return UiButtonEx(Rect, pText, pButState, StyleColorButton, StyleColorButtonHover,
-		StyleColorButtonPressed, StyleColorButtonBorder, FontSize);
+		StyleColorButtonPressed, StyleColorButtonBorder, FontSize, Align);
 }
 
 bool CEditor2::UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pButState, vec4 ColNormal,
-	vec4 ColHover, vec4 ColPress, vec4 ColBorder, float FontSize)
+	vec4 ColHover, vec4 ColPress, vec4 ColBorder, float FontSize, int Align)
 {
 	UiDoButtonBehavior(pButState, Rect, pButState);
 
@@ -4447,7 +4495,7 @@ bool CEditor2::UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pBu
 		ShowButColor = ColPress;
 
 	DrawRectBorder(Rect, ShowButColor, 1, ColBorder);
-	DrawText(Rect, pText, FontSize);
+	DrawText(Rect, pText, FontSize, vec4(1,1,1,1), Align);
 	return pButState->m_Clicked;
 }
 

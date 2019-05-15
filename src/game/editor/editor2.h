@@ -496,14 +496,14 @@ class CEditor2: public IEditor
 	void DrawRectBorder(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
 	void DrawRectBorderOutside(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
 	void DrawRectBorderMiddle(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
-	void DrawText(const CUIRect& Rect, const char* pText, float FontSize, vec4 Color = vec4(1,1,1,1));
+	void DrawText(const CUIRect& Rect, const char* pText, float FontSize, vec4 Color = vec4(1,1,1,1), int Align = -1);
 
 	void UiDoButtonBehavior(const void* pID, const CUIRect& Rect, CUIButton* pButState);
 	bool UiDoMouseDragging(const void* pID, const CUIRect& Rect, CUIMouseDrag* pDragState);
 
-	bool UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, float FontSize = 10);
+	bool UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, float FontSize = 10, int Align = -1);
 	bool UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pButState,
-					vec4 ColNormal, vec4 ColHover, vec4 ColPress, vec4 ColBorder, float FontSize);
+					vec4 ColNormal, vec4 ColHover, vec4 ColPress, vec4 ColBorder, float FontSize, int Align = -1);
 	bool UiTextInput(const CUIRect& Rect, char* pText, int TextMaxLength, CUITextInput* pInputState);
 	bool UiIntegerInput(const CUIRect& Rect, int* pInteger, CUIIntegerInput* pInputState);
 	bool UiSliderInt(const CUIRect& Rect, int* pInteger, int Min, int Max, CUIButton* pInputState);
