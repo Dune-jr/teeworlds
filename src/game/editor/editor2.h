@@ -521,7 +521,17 @@ class CEditor2: public IEditor
 		inline CButtonStyle& Border(vec4 Col);
 		inline CButtonStyle& Center() { Align = 0; return *this; }
 	};
-	bool UiButton(const CUIRect& Rect, const char* pText, CUIButton* pButState, CButtonStyle Cols = CButtonStyle())
+	void DoIcon(int ImageId, int SpriteId, const CUIRect *pRect)
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[ImageId].m_Id);
+
+		Graphics()->QuadsBegin();
+		RenderTools()->SelectSprite(SpriteId);
+		IGraphics::CQuadItem QuadItem(pRect->x, pRect->y, pRect->w, pRect->h);
+		Graphics()->QuadsDrawTL(&QuadItem, 1);
+		Graphics()->QuadsEnd();
+	}
+	bool UiButtonEx(const CUIRect& Rect, const char* pText, CUIButton* pButState, CButtonStyle Cols = CButtonStyle())
 		{ return UiButtonEx(Rect, pText, pButState, Cols.ColNormal, Cols.ColHover, Cols.ColPress, Cols.ColBorder, Cols.FontSize, Cols.Align); }
 	bool UiTextInput(const CUIRect& Rect, char* pText, int TextMaxLength, CUITextInput* pInputState);
 	bool UiIntegerInput(const CUIRect& Rect, int* pInteger, CUIIntegerInput* pInputState);

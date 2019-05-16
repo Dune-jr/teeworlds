@@ -49,11 +49,14 @@ static char s_aEdMsg[256];
 #define ARR_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
 
 // Fisico
+const vec4 StyleColorLayer1(46/255.f, 46/255.f, 46/255.f, 1);
+const vec4 StyleColorSubHeader(55/255.f, 55/255.f, 55/255.f, 1);
+const vec4 StyleColorLayer2 = StyleColorSubHeader;
 const vec4 StyleColorBg(31/255.f, 31/255.f, 31/255.f, 1);
 const vec4 StyleColorButton(95/255.f, 95/255.f, 95/255.f, 1);
-const vec4 StyleColorButtonBorder(0.18, 0.00, 0.56, 1);
-const vec4 StyleColorButtonHover(0.28, 0.10, 0.64, 1);
+const vec4 StyleColorButtonBorder(79/255.f, 79/255.f, 79/255.f, 1);
 const vec4 StyleColorButtonPressed(84/255.f, 122/255.f, 181/255.f, 1);
+const vec4 StyleColorButtonHover = StyleColorButtonPressed; 
 const vec4 StyleColorInputSelected(0,0.2,1,1);
 const vec4 StyleColorTileSelection(0.0, 0.31, 1, 0.4);
 const vec4 StyleColorTileHover(1, 1, 1, 0.25);
@@ -2362,20 +2365,20 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	DrawRect(SecondaryPanel, vec4(66/255.f, 66/255.f, 66/255.f, 1));
 
 	CUIRect ButtonRect;
-	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
+	TopPanel.VSplitLeft(40.0f, &ButtonRect, &TopPanel);
 
 	CUIRect FileMenuRect = {ButtonRect.x, ButtonRect.y+ButtonRect.h, 120, 20*7};
 	static CUIButton s_File;
 	// if(UiButton(ButtonRect, "File", &s_File, 10, 0))
-	if(UiButtonEx(ButtonRect, "File", &s_File, CButtonStyle().Normal(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRect, "File", &s_File, CButtonStyle().Normal(vec4(0,0,0,0)).Border(vec4(0,0,0,0)).Center()))
 	{
 		m_UiCurrentPopupID = POPUP_MENU_FILE;
 		m_UiCurrentPopupRect = FileMenuRect;
 	}
 
-	TopPanel.VSplitLeft(50.0f, &ButtonRect, &TopPanel);
+	TopPanel.VSplitLeft(40.0f, &ButtonRect, &TopPanel);
 	static CUIButton s_Help;
-	if(UiButtonEx(ButtonRect, "Help", &s_Help, CButtonStyle().Normal(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRect, "Help", &s_Help, CButtonStyle().Normal(vec4(0,0,0,0)).Border(vec4(0,0,0,0)).Center()))
 	{
 
 	}
@@ -2410,12 +2413,12 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	for(int t = 0; t < TOOL_COUNT_; t++)
 	{
 		TopPanel.VSplitLeft(60.0f, &ButtonRect, &TopPanel);
-		if(UiButtonEx(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t ? StyleColorInputSelected : StyleColorButton, m_Tool == t ? StyleColorInputSelected : StyleColorButtonHover, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0))
+		if(UiButtonEx(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t ? StyleColorButtonPressed : StyleColorButton, m_Tool == t ? StyleColorButtonPressed : StyleColorButtonHover, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0))
 			ChangeTool(t);
 	}
 
 	TopPanel.VSplitLeft(30.0f, 0, &TopPanel);
-	TopPanel.VSplitLeft(150.0f, &ButtonRect, &TopPanel);
+	TopPanel.VSplitLeft(7*30.0f, &ButtonRect, &TopPanel);
 	UiButtonEx(ButtonRect, aButName[m_Tool], &s_ButTools[m_Tool], StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0);
 	{
 		CUIRect ToolsRect = ButtonRect;
@@ -2431,10 +2434,28 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 		UiButton(ButtonRect, "Move", &s_Move, 10, 0);
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_XX;
-		UiButton(ButtonRect, "X/X", &s_XX, 10, 0);
+		UiButton(ButtonRect, "", &s_XX, 10, 0);
+		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
+		ButtonRect.w = ButtonRect.h;
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_XFLIP, &ButtonRect);
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_YY;
-		UiButton(ButtonRect, "Y/Y", &s_YY, 10, 0);
+		UiButton(ButtonRect, "", &s_YY, 10, 0);
+		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
+		ButtonRect.w = ButtonRect.h;
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_YFLIP, &ButtonRect);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_BIG1;
+		UiButton(ButtonRect, "", &s_BIG1, 10, 0);
+		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
+		ButtonRect.w = ButtonRect.h;
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_BIG1, &ButtonRect);
+		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_BIG2;
+		UiButton(ButtonRect, "", &s_BIG2, 10, 0);
+		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
+		ButtonRect.w = ButtonRect.h;
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_BIG2, &ButtonRect);
 	}
 }
 
@@ -2467,13 +2488,13 @@ void CEditor2::RenderMapEditorUI()
 	ButtonRect.VSplitMid(&ButtonRect, &ButtonRectRight);
 
 	static CUIButton s_ButGroups;
-	if(UiButton(ButtonRect, "Groups", &s_ButGroups))
+	if(UiButtonEx(ButtonRect, "Layers", &s_ButGroups, CButtonStyle().Normal(s_CurrentTab == TAB_GROUPS ? StyleColorLayer1 : StyleColorLayer2).Center()))
 	{
 		s_CurrentTab = TAB_GROUPS;
 	}
 
 	static CUIButton s_ButHistory;
-	if(UiButton(ButtonRectRight, "History", &s_ButHistory))
+	if(UiButtonEx(ButtonRectRight, "History", &s_ButHistory, CButtonStyle().Normal(s_CurrentTab == TAB_HISTORY ? StyleColorLayer1 : StyleColorLayer2).Center()))
 	{
 		s_CurrentTab = TAB_HISTORY;
 	}
