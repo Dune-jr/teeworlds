@@ -2409,10 +2409,16 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 		"Brush"
 	};
 	TopPanel.VSplitLeft(50.0f, 0, &TopPanel);
+	TopPanel.VSplitLeft(60.0f*TOOL_COUNT_, &ButtonRect, &TopPanel);
+	static CUIButton s_ButtonTools;
+	UiButtonEx(ButtonRect, "Tools", &s_ButtonTools, CButtonStyle().Center());
+
+	CUIRect ToolsRect = ButtonRect;
+	ToolsRect.y += 20.0f;
 
 	for(int t = 0; t < TOOL_COUNT_; t++)
 	{
-		TopPanel.VSplitLeft(60.0f, &ButtonRect, &TopPanel);
+		ToolsRect.VSplitLeft(60.0f, &ButtonRect, &ToolsRect);
 		if(UiButtonEx(ButtonRect, aButName[t], &s_ButTools[t], m_Tool == t ? StyleColorButtonPressed : StyleColorButton, m_Tool == t ? StyleColorButtonPressed : StyleColorButtonHover, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0))
 			ChangeTool(t);
 	}
@@ -2421,35 +2427,42 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	TopPanel.VSplitLeft(7*30.0f, &ButtonRect, &TopPanel);
 	UiButtonEx(ButtonRect, aButName[m_Tool], &s_ButTools[m_Tool], StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0);
 	{
-		CUIRect ToolsRect = ButtonRect;
+		ToolsRect = ButtonRect;
 		ToolsRect.y += 20.0f;
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_Fill;
 		UiButton(ButtonRect, "Fill", &s_Fill, 10, 0);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_Cut;
 		UiButton(ButtonRect, "Cut", &s_Cut, 10, 0);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_Move;
 		UiButton(ButtonRect, "Move", &s_Move, 10, 0);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_XX;
 		UiButton(ButtonRect, "", &s_XX, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
 		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_XFLIP, &ButtonRect);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_YY;
 		UiButton(ButtonRect, "", &s_YY, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
 		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_YFLIP, &ButtonRect);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_BIG1;
 		UiButton(ButtonRect, "", &s_BIG1, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
 		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_BIG1, &ButtonRect);
+
 		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_BIG2;
 		UiButton(ButtonRect, "", &s_BIG2, 10, 0);
@@ -2488,13 +2501,13 @@ void CEditor2::RenderMapEditorUI()
 	ButtonRect.VSplitMid(&ButtonRect, &ButtonRectRight);
 
 	static CUIButton s_ButGroups;
-	if(UiButtonEx(ButtonRect, "Layers", &s_ButGroups, CButtonStyle().Normal(s_CurrentTab == TAB_GROUPS ? StyleColorLayer1 : StyleColorLayer2).Center()))
+	if(UiButtonEx(ButtonRect, "Layers", &s_ButGroups, CButtonStyle().Normal(s_CurrentTab == TAB_GROUPS ? StyleColorLayer1 : StyleColorLayer2).Border(vec4(0,0,0,0)).Center()))
 	{
 		s_CurrentTab = TAB_GROUPS;
 	}
 
 	static CUIButton s_ButHistory;
-	if(UiButtonEx(ButtonRectRight, "History", &s_ButHistory, CButtonStyle().Normal(s_CurrentTab == TAB_HISTORY ? StyleColorLayer1 : StyleColorLayer2).Center()))
+	if(UiButtonEx(ButtonRectRight, "History", &s_ButHistory, CButtonStyle().Normal(s_CurrentTab == TAB_HISTORY ? StyleColorLayer1 : StyleColorLayer2).Border(vec4(0,0,0,0)).Center()))
 	{
 		s_CurrentTab = TAB_HISTORY;
 	}
@@ -3146,7 +3159,8 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 				CUIButton& ButState = s_UiLayerButState[LyID];
 				UiDoButtonBehavior(&ButState, ButtonRect, &ButState);
 
-				vec4 ButColor = StyleColorButton;
+				// Fisico
+				vec4 ButColor = li % 2 ? StyleColorSubHeader : StyleColorButton;
 				if(ButState.m_Hovered)
 					ButColor = StyleColorButtonHover;
 				if(ButState.m_Pressed)
