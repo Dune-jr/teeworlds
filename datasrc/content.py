@@ -549,8 +549,8 @@ container.sprites.Add(Sprite("sidebar_info_b", set_sidebaricons, 3,1,1,1))
 
 container.sprites.Add(Sprite("editor_xflip", set_editoricons, 0,0,1,1))
 container.sprites.Add(Sprite("editor_yflip", set_editoricons, 1,0,1,1))
-container.sprites.Add(Sprite("editor_big1", set_editoricons, 2,0,1,1))
-container.sprites.Add(Sprite("editor_big2", set_editoricons, 3,0,1,1))
+container.sprites.Add(Sprite("editor_rotate1", set_editoricons, 2,0,1,1))
+container.sprites.Add(Sprite("editor_rotate2", set_editoricons, 3,0,1,1))
 
 anim = Animation("base")
 anim.body.frames.Add(AnimKeyframe(0, 0, -4, 0))

@@ -496,6 +496,11 @@ class CEditor2: public IEditor
 	void DrawRectBorder(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
 	void DrawRectBorderOutside(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
 	void DrawRectBorderMiddle(const CUIRect& Rect, const vec4& Color, float Border, const vec4 BorderColor);
+	enum
+	{
+		ALIGN_LEFT = -1,
+		ALIGN_CENTER = 0,
+	};
 	void DrawText(const CUIRect& Rect, const char* pText, float FontSize, vec4 Color = vec4(1,1,1,1), int Align = -1);
 
 	void UiDoButtonBehavior(const void* pID, const CUIRect& Rect, CUIButton* pButState);

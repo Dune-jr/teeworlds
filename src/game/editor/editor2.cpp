@@ -2384,7 +2384,6 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	}
 
 	// page switcher
-	TopPanel.VSplitRight(5.0f, &TopPanel, 0);
 	TopPanel.VSplitRight(120.0f, &TopPanel, &ButtonRect);
 	static CUIButton s_PageSwitchButton;
 	if(m_Page == PAGE_MAP_EDITOR)
@@ -2411,7 +2410,7 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	TopPanel.VSplitLeft(50.0f, 0, &TopPanel);
 	TopPanel.VSplitLeft(60.0f*TOOL_COUNT_, &ButtonRect, &TopPanel);
 	static CUIButton s_ButtonTools;
-	UiButtonEx(ButtonRect, "Tools", &s_ButtonTools, CButtonStyle().Center());
+	UiButtonEx(ButtonRect, "Tools", &s_ButtonTools, CButtonStyle().Center().Normal(StyleColorLayer2).Hover(StyleColorLayer2));
 
 	CUIRect ToolsRect = ButtonRect;
 	ToolsRect.y += 20.0f;
@@ -2424,7 +2423,7 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 	}
 
 	TopPanel.VSplitLeft(30.0f, 0, &TopPanel);
-	TopPanel.VSplitLeft(7*30.0f, &ButtonRect, &TopPanel);
+	TopPanel.VSplitLeft(3*30.0f+4*20.0f, &ButtonRect, &TopPanel);
 	UiButtonEx(ButtonRect, aButName[m_Tool], &s_ButTools[m_Tool], StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonPressed, StyleColorButtonBorder, 10.0f, 0);
 	{
 		ToolsRect = ButtonRect;
@@ -2442,33 +2441,33 @@ void CEditor2::RenderTopPanel(CUIRect TopPanel)
 		static CUIButton s_Move;
 		UiButton(ButtonRect, "Move", &s_Move, 10, 0);
 
-		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		ToolsRect.VSplitLeft(20.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_XX;
 		UiButton(ButtonRect, "", &s_XX, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
 		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_XFLIP, &ButtonRect);
 
-		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
+		ToolsRect.VSplitLeft(20.0f, &ButtonRect, &ToolsRect);
 		static CUIButton s_YY;
 		UiButton(ButtonRect, "", &s_YY, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
 		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_YFLIP, &ButtonRect);
 
-		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
-		static CUIButton s_BIG1;
-		UiButton(ButtonRect, "", &s_BIG1, 10, 0);
+		ToolsRect.VSplitLeft(20.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_ROTATE1;
+		UiButton(ButtonRect, "", &s_ROTATE1, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
-		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_BIG1, &ButtonRect);
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_ROTATE1, &ButtonRect);
 
-		ToolsRect.VSplitLeft(30.0f, &ButtonRect, &ToolsRect);
-		static CUIButton s_BIG2;
-		UiButton(ButtonRect, "", &s_BIG2, 10, 0);
+		ToolsRect.VSplitLeft(20.0f, &ButtonRect, &ToolsRect);
+		static CUIButton s_ROTATE2;
+		UiButton(ButtonRect, "", &s_ROTATE2, 10, 0);
 		ButtonRect.x += (ButtonRect.w-ButtonRect.h)/2.f;
 		ButtonRect.w = ButtonRect.h;
-		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_BIG2, &ButtonRect);
+		DoIcon(IMAGE_EDITORICONS, SPRITE_EDITOR_ROTATE2, &ButtonRect);
 	}
 }
 
@@ -2592,10 +2591,11 @@ void CEditor2::RenderMapEditorUI()
 		DetailPanel.Margin(Margin, &ButtonRect);
 		ButtonRect.h = ButtonSize;
 
-		static CUIButton s_OpenDetailPanelButton;
-		if(UiButton(ButtonRect, "<", &s_OpenDetailPanelButton, 7)) {
-			m_UiDetailPanelIsOpen = true;
-		}
+		// Fisico
+		// static CUIButton s_OpenDetailPanelButton;
+		// if(UiButton(ButtonRect, "<", &s_OpenDetailPanelButton, 7)) {
+		// 	m_UiDetailPanelIsOpen = true;
+		// }
 	}
 
 	UI()->ClipEnable(&m_UiMainViewRect); // clip main view rect
@@ -3169,15 +3169,48 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 
 				if(ButState.m_Clicked)
 				{
-					m_UiSelectedLayerID = LyID;
-					m_UiSelectedGroupID = gi;
+					if(m_UiSelectedGroupID == gi && m_UiSelectedLayerID == LyID)
+					{
+						m_UiDetailPanelIsOpen ^= 1;
+					}
+					else
+					{
+						m_UiSelectedLayerID = LyID;
+						m_UiSelectedGroupID = gi;
+					}
 				}
 
 				const bool IsSelected = m_UiSelectedLayerID == LyID;
 
 				if(IsSelected)
+				{
 					// DrawRectBorder(ButtonRect, ButColor, 1, vec4(1, 0, 0, 1));
 					DrawRect(ButtonRect, StyleColorButtonPressed); // Fisico
+
+					if(m_UiDetailPanelIsOpen)
+					{
+						// Draw triangle on the left
+						const vec4 Color = StyleColorButtonPressed;
+						const float MarginX = 5.0f;
+						const float x = ButtonRect.x;
+						const float y = ButtonRect.y;
+						const float h = ButtonRect.h;
+
+						Graphics()->TextureClear();
+						Graphics()->QuadsBegin();
+						IGraphics::CFreeformItem Triangle(
+							x, y,
+							x, y + h,
+							x - h*0.5f, y + h*0.5f,
+							x, y
+						);
+
+						Graphics()->SetColor(Color.r*Color.a, Color.g*Color.a, Color.b*Color.a, Color.a);
+
+						Graphics()->QuadsDrawFreeform(&Triangle, 1);
+						Graphics()->QuadsEnd();
+					}
+				}
 				else
 					DrawRect(ButtonRect, ButColor);
 
@@ -3342,18 +3375,18 @@ void CEditor2::RenderMapEditorUiDetailPanel(CUIRect DetailRect)
 	const float Spacing = 2.0f;
 
 	// close button
-	DetailRect.HSplitTop(ButtonHeight, &ButtonRect, &DetailRect);
-	DetailRect.HSplitTop(Spacing, 0, &DetailRect);
-	static CUIButton s_CloseDetailPanelButton;
-	if(UiButton(ButtonRect, ">", &s_CloseDetailPanelButton, 8)) {
-		m_UiDetailPanelIsOpen = false;
-	}
+	// DetailRect.HSplitTop(ButtonHeight, &ButtonRect, &DetailRect);
+	// DetailRect.HSplitTop(Spacing, 0, &DetailRect);
+	// static CUIButton s_CloseDetailPanelButton;
+	// if(UiButton(ButtonRect, ">", &s_CloseDetailPanelButton, 8)) {
+	// 	m_UiDetailPanelIsOpen = false;
+	// }
 
 	// label
 	DetailRect.HSplitTop(ButtonHeight, &ButtonRect, &DetailRect);
 	DetailRect.HSplitTop(Spacing, 0, &DetailRect);
-	DrawRect(ButtonRect, StyleColorButtonPressed);
-	DrawText(ButtonRect, Localize("Group"), FontSize);
+	DrawRect(ButtonRect, StyleColorLayer1); // Fisico
+	DrawText(ButtonRect, Localize("Group"), FontSize, vec4(1,1,1,1), ALIGN_CENTER);
 
 	if(!IsGameGroup)
 	{
@@ -3501,8 +3534,8 @@ void CEditor2::RenderMapEditorUiDetailPanel(CUIRect DetailRect)
 		DetailRect.HSplitTop(Spacing, 0, &DetailRect);
 
 		// label
-		DrawRect(ButtonRect, StyleColorButtonPressed);
-		DrawText(ButtonRect, Localize("Layer"), FontSize);
+		DrawRect(ButtonRect, StyleColorLayer1); //Fisico
+		DrawText(ButtonRect, Localize("Tile Layer"), FontSize, vec4(1,1,1,1), ALIGN_CENTER);
 
 		if(!IsGameLayer)
 		{
@@ -4447,15 +4480,15 @@ inline void CEditor2::DrawText(const CUIRect& Rect, const char* pText, float Fon
 {
 	const float OffY = (Rect.h - FontSize - 3.0f) * 0.5f;
 	CTextCursor Cursor;
-	if(Align == -1)
+	if(Align == ALIGN_LEFT)
 	{
 		TextRender()->SetCursor(&Cursor, Rect.x + OffY, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
 		TextRender()->TextShadowed(&Cursor, pText, -1, vec2(0,0), vec4(0,0,0,0), Color);
 	}
-	else if(Align == 0)
+	else if(Align == ALIGN_CENTER)
 	{
 		float tw = TextRender()->TextWidth(0, FontSize, pText, -1, -1.0f);
-		TextRender()->SetCursor(&Cursor, Rect.x + /*OffY*/ + Rect.w/2-tw/2, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
+		TextRender()->SetCursor(&Cursor, Rect.x + Rect.w/2-tw/2, Rect.y + OffY, FontSize, TEXTFLAG_RENDER);
 		TextRender()->TextShadowed(&Cursor, pText, -1, vec2(0,0), vec4(0,0,0,0), Color);	
 	}
 }
