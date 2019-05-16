@@ -2527,8 +2527,7 @@ void CEditor2::RenderMapEditorUI()
 				(m_TileSelection.m_EndTY+1-m_TileSelection.m_StartTY)*TileSize
 			};
 
-			CUIRect UiRect = CalcUiRectFromGroupWorldRect(m_UiSelectedGroupID, m_ZoomWorldViewWidth,
-				m_ZoomWorldViewHeight, SelectRect);
+			CUIRect UiRect = CalcUiRectFromGroupWorldRect(m_UiSelectedGroupID, m_ZoomWorldViewWidth, m_ZoomWorldViewHeight, SelectRect);
 
 			const float Margin = 4.0f;
 			const float ButtonHeight = 25;
@@ -3608,17 +3607,31 @@ void CEditor2::RenderMapEditorUiDetailPanel(CUIRect DetailRect)
                 QuadListRegionRect.HSplitTop(ButtonHeight, &ButtonRect, &QuadListRegionRect);
                 QuadListRegionRect.HSplitTop(Spacing, 0, &QuadListRegionRect);
 				ButtonRect.VSplitRight(8.0f, &ButtonRect, 0);
-				ButtonRect.VSplitRight(ButtonHeight, &ButtonRect, &PreviewRect);
-				DrawRect(ButtonRect, vec4(0,0,0,1));
+				ButtonRect.VSplitRight(ButtonHeight, 0, &PreviewRect);
 				str_format(aBuff, sizeof(aBuff), "  Quad #%d", QuadId+1);
-				DrawText(ButtonRect, aBuff, FontSize);
+
+				static CUIButton s_QuadBut;
+				if(UiButton(ButtonRect, aBuff, &s_QuadBut, FontSize))
+				{
+					// center on quad
+					const vec2 QuadPos = vec2(fx2i(Quad.m_aPoints[4].x), fx2i(Quad.m_aPoints[4].y));
+					const vec2 vvv = CalcGroupWorldPosFromUiPos(m_UiSelectedGroupID, m_ZoomWorldViewWidth, m_ZoomWorldViewHeight, QuadPos);
+					const vec2 MouseWorldPos = CalcGroupWorldPosFromUiPos(m_UiSelectedGroupID, m_ZoomWorldViewWidth, m_ZoomWorldViewHeight, m_UiMousePos);
+
+					const CUIRect QuadRect = {QuadPos.x, QuadPos.y, 0, 0};
+					const CUIRect UIQuadRect = CalcUiRectFromGroupWorldRect(m_UiSelectedGroupID, m_ZoomWorldViewWidth, m_ZoomWorldViewHeight, QuadRect);
+					const vec2 UICenterPos(m_UiMainViewRect.w*0.5, m_UiMainViewRect.h*0.5);
+					dbg_msg("editor", "QuadPos = %f:%f; UIQuadPos = %f:%f;  vvv= %f:%f", QuadPos.x, QuadPos.y, UIQuadRect.x, UIQuadRect.y, UICenterPos.x, UICenterPos.y);
+					m_MapUiPosOffset += vec2(UIQuadRect.x - UICenterPos.x, UIQuadRect.y - UICenterPos.y);
+				}
 
 				// preview
-				CUIRect PreviewRectBorder = {PreviewRect.x-1, PreviewRect.y-1, PreviewRect.w+2, PreviewRect.h+2};
-				DrawRect(PreviewRectBorder, StyleColorButtonBorder);
+				DrawRect(PreviewRect, StyleColorButtonBorder);
+				PreviewRect = {PreviewRect.x+1, PreviewRect.y+1, PreviewRect.w-2, PreviewRect.h-2};
 				DrawRect(PreviewRect, vec4(0,0,0,1));
 				PreviewRect.h /= 2;
 				PreviewRect.w /= 2;
+
 				DrawRect(PreviewRect, vec4(Quad.m_aColors[0].r/255.0f, Quad.m_aColors[0].g/255.0f, Quad.m_aColors[0].b/255.0f, Quad.m_aColors[0].a/255.0f));
 				PreviewRect.x += PreviewRect.w;
 				DrawRect(PreviewRect, vec4(Quad.m_aColors[1].r/255.0f, Quad.m_aColors[1].g/255.0f, Quad.m_aColors[1].b/255.0f, Quad.m_aColors[1].a/255.0f));
