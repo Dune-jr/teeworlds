@@ -2501,13 +2501,13 @@ void CEditor2::RenderMapEditorUI()
 	ButtonRect.VSplitMid(&ButtonRect, &ButtonRectRight);
 
 	static CUIButton s_ButGroups;
-	if(UiButtonEx(ButtonRect, "Layers", &s_ButGroups, CButtonStyle().Normal(s_CurrentTab == TAB_GROUPS ? StyleColorLayer1 : StyleColorLayer2).Border(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRect, "Layers", &s_ButGroups, CButtonStyle().Normal(s_CurrentTab == TAB_GROUPS ? StyleColorLayer1 : StyleColorBg).Border(StyleColorLayer1).Center()))
 	{
 		s_CurrentTab = TAB_GROUPS;
 	}
 
 	static CUIButton s_ButHistory;
-	if(UiButtonEx(ButtonRectRight, "History", &s_ButHistory, CButtonStyle().Normal(s_CurrentTab == TAB_HISTORY ? StyleColorLayer1 : StyleColorLayer2).Border(vec4(0,0,0,0)).Center()))
+	if(UiButtonEx(ButtonRectRight, "History", &s_ButHistory, CButtonStyle().Normal(s_CurrentTab == TAB_HISTORY ? StyleColorLayer1 : StyleColorBg).Border(StyleColorLayer1).Center()))
 	{
 		s_CurrentTab = TAB_HISTORY;
 	}
@@ -3018,12 +3018,13 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 	int DragMoveDir = 0;
 	// -----------------------
 
+	int ColorIndex = 0;
 	for(int gi = 0; gi < GroupCount; gi++)
 	{
 		const CEditorMap2::CGroup& Group = m_Map.m_aGroups[gi];
 
-		if(gi != 0)
-			NavRect.HSplitTop(Spacing, 0, &NavRect);
+		// if(gi != 0)
+		// 	NavRect.HSplitTop(Spacing, 0, &NavRect); // Fisico
 		NavRect.HSplitTop(ButtonHeight, &ButtonRect, &NavRect);
 		UiScrollRegionAddRect(&s_ScrollRegion, ButtonRect);
 
@@ -3083,7 +3084,7 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 		const bool IsSelected = m_UiSelectedGroupID == gi;
 		const bool IsOpen = m_UiGroupOpen[gi];
 
-		vec4 ButColor = StyleColorButton;
+		vec4 ButColor = ColorIndex++ % 2 ? StyleColorLayer1 : StyleColorLayer2;
 		if(ButState.m_Hovered)
 			ButColor = StyleColorButtonHover;
 		if(ButState.m_Pressed)
@@ -3113,7 +3114,7 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 			{
 				const int LyID = m_Map.m_aGroups[gi].m_apLayerIDs[li];
 				const CEditorMap2::CLayer& Layer = m_Map.m_aLayers[LyID];
-				NavRect.HSplitTop(Spacing, 0, &NavRect);
+				// NavRect.HSplitTop(Spacing, 0, &NavRect); // Fisico
 				NavRect.HSplitTop(ButtonHeight, &ButtonRect, &NavRect);
 				UiScrollRegionAddRect(&s_ScrollRegion, ButtonRect);
 				ButtonRect.VSplitLeft(10.0f, 0, &ButtonRect);
@@ -3160,7 +3161,7 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 				UiDoButtonBehavior(&ButState, ButtonRect, &ButState);
 
 				// Fisico
-				vec4 ButColor = li % 2 ? StyleColorSubHeader : StyleColorButton;
+				vec4 ButColor = ColorIndex++ % 2 ? StyleColorLayer1 : StyleColorLayer2;
 				if(ButState.m_Hovered)
 					ButColor = StyleColorButtonHover;
 				if(ButState.m_Pressed)
@@ -3175,7 +3176,8 @@ void CEditor2::RenderMapEditorUiLayerGroups(CUIRect NavRect)
 				const bool IsSelected = m_UiSelectedLayerID == LyID;
 
 				if(IsSelected)
-					DrawRectBorder(ButtonRect, ButColor, 1, vec4(1, 0, 0, 1));
+					// DrawRectBorder(ButtonRect, ButColor, 1, vec4(1, 0, 0, 1));
+					DrawRect(ButtonRect, StyleColorButtonPressed); // Fisico
 				else
 					DrawRect(ButtonRect, ButColor);
 
