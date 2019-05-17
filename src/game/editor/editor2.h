@@ -143,7 +143,7 @@ struct CEditorMap2
 		int m_ClipY = 0;
 		int m_ClipWidth = 0;
 		int m_ClipHeight = 0;
-		bool m_UseClipping = false;
+		int m_UseClipping = false; // bool is dangerous with mem_comp
 	};
 
 	struct CEnvelope
