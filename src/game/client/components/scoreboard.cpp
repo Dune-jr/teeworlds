@@ -18,6 +18,7 @@
 
 #include "menus.h"
 #include "scoreboard.h"
+#include "stats.h"
 
 
 CScoreboard::CScoreboard()
@@ -655,6 +656,10 @@ void CScoreboard::OnRender()
 	// close the motd if we actively wanna look on the scoreboard
 	if(m_Active)
 		m_pClient->m_pMotd->Clear();
+
+	// if statboard active don't show scoreboard
+	if(m_pClient->m_pStats->IsActive())
+		return;
 
 	if(!Active())
 		return;

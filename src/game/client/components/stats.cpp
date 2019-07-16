@@ -11,6 +11,8 @@
 CStats::CStats()
 {
 	m_Active = false;
+	m_ScreenshotTaken = false;
+	m_ScreenshotTime = -1;
 }
 
 void CStats::OnReset()
@@ -18,6 +20,13 @@ void CStats::OnReset()
 	for(int i=0; i<MAX_CLIENTS; i++)
 		m_pClient->m_aStats[i].Reset();
 	m_Active = false;
+	m_ScreenshotTaken = false;
+	m_ScreenshotTime = -1;
+}
+
+bool CStats::IsActive()
+{
+	return m_Active;
 }
 
 void CStats::ConKeyStats(IConsole::IResult *pResult, void *pUserData)
@@ -64,6 +73,25 @@ void CStats::OnMessage(int MsgType, void *pRawMsg)
 
 void CStats::OnRender()
 {
+	// auto stat screenshot stuff
+	if(g_Config.m_ClAutoStatScreenshot)
+	{
+		// on game over, wait three seconds
+		if(m_ScreenshotTime < 0 && m_pClient->m_Snap.m_pGameData && m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_GAMEOVER)
+			m_ScreenshotTime = time_get()+time_freq()*3;
+
+		// switch to statboard
+		if(m_ScreenshotTime > -1 && m_ScreenshotTime < time_get())
+			m_Active = true;
+
+		// when rendered, take screenshot once
+		if(!m_ScreenshotTaken && m_ScreenshotTime > -1 && m_ScreenshotTime+time_freq()/5 < time_get())
+		{
+			AutoStatScreenshot();
+			m_ScreenshotTaken = true;
+		}
+	}
+
 	if(!m_Active)
 		return;
 
@@ -310,4 +338,11 @@ void CStats::OnRender()
 		}
 		y += LineHeight;
 	}
+}
+
+void CStats::AutoStatScreenshot()
+{
+	dbg_msg("test", "autostatscreenshot");
+	if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
+		Client()->AutoStatScreenshot_Start();
 }

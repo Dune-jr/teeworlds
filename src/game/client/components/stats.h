@@ -21,10 +21,14 @@ class CStats: public CComponent
 {
 private:
 	int m_Active;
+	bool m_ScreenshotTaken;
+	int64 m_ScreenshotTime;
 	static void ConKeyStats(IConsole::IResult *pResult, void *pUserData);
+	void AutoStatScreenshot();
 
 public:
 	CStats();
+	bool IsActive();
 	virtual void OnReset();
 	virtual void OnConsoleInit();
 	virtual void OnRender();
