@@ -918,7 +918,7 @@ void CMenus::UiDoListboxHeader(CListBoxState* pState, const CUIRect *pRect, cons
 	View.HSplitTop(Spacing, &Header, &View);
 
 	// setup the variables
-	pState->m_ListBoxOriginalView = View;
+	pState->m_ListBoxView = View;
 }
 
 void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowHeight,
@@ -929,7 +929,7 @@ void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowH
 	if(pRect)
 		View = *pRect;
 	else
-		View = pState->m_ListBoxOriginalView;
+		View = pState->m_ListBoxView;
 	CUIRect Footer;
 
 	// background
@@ -950,7 +950,6 @@ void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowH
 
 	// setup the variables
 	pState->m_ListBoxView = View;
-	pState->m_ListBoxOriginalView = View;
 	pState->m_ListBoxSelectedIndex = SelectedIndex;
 	pState->m_ListBoxNewSelected = SelectedIndex;
 	pState->m_ListBoxItemIndex = 0;
@@ -987,17 +986,6 @@ CMenus::CListboxItem CMenus::UiDoListboxNextRow(CListBoxState* pState)
 		Item.m_Selected = 1;
 
 	Item.m_Visible = !ScrollRegionIsRectClipped(&pState->m_ScrollRegion, Item.m_Rect);
-	Item.m_HitRect = Item.m_Rect;
-
-	// make sure that only those in view can be selected
-	if(Item.m_Rect.y+Item.m_Rect.h > pState->m_ListBoxOriginalView.y)
-	{
-		if(Item.m_HitRect.y < pState->m_ListBoxOriginalView.y) // clip the selection
-		{
-			Item.m_HitRect.h -= pState->m_ListBoxOriginalView.y-Item.m_HitRect.y;
-			Item.m_HitRect.y = pState->m_ListBoxOriginalView.y;
-		}
-	}
 
 	pState->m_ListBoxItemIndex++;
 	return Item;
@@ -1016,7 +1004,7 @@ CMenus::CListboxItem CMenus::UiDoListboxNextItem(CListBoxState* pState, const vo
 	CListboxItem Item = UiDoListboxNextRow(pState);
 	static bool s_ItemClicked = false;
 
-	if(Item.m_Visible && UI()->DoButtonLogic(pId, "", pState->m_ListBoxSelectedIndex == pState->m_ListBoxItemIndex, &Item.m_HitRect))
+	if(Item.m_Visible && UI()->DoButtonLogic(pId, "", pState->m_ListBoxSelectedIndex == pState->m_ListBoxItemIndex, &Item.m_Rect))
 	{
 		s_ItemClicked = true;
 		pState->m_ListBoxNewSelected = ThisItemIndex;

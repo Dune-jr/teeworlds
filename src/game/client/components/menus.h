@@ -203,12 +203,10 @@ private:
 		int m_Visible;
 		int m_Selected;
 		CUIRect m_Rect;
-		CUIRect m_HitRect;
 	};
 
 	struct CListBoxState
 	{
-		CUIRect m_ListBoxOriginalView;
 		CUIRect m_ListBoxView;
 		float m_ListBoxRowHeight;
 		int m_ListBoxItemIndex;
