@@ -1196,7 +1196,8 @@ void CGameClient::OnNewSnapshot()
 				int GameFlags = m_Snap.m_pGameData->m_GameStateFlags;
 				if(!(s_LastGameFlags&GAMESTATEFLAG_GAMEOVER) && GameFlags&GAMESTATEFLAG_GAMEOVER)
 					OnGameOver();
-				else if(s_LastGameFlags&GAMESTATEFLAG_GAMEOVER && !(GameFlags&GAMESTATEFLAG_GAMEOVER))
+				else if((s_LastGameFlags&GAMESTATEFLAG_GAMEOVER && !(GameFlags&GAMESTATEFLAG_GAMEOVER))
+					 || (s_LastGameFlags&GAMESTATEFLAG_ROUNDOVER && !(GameFlags&GAMESTATEFLAG_ROUNDOVER)))
 					OnStartGame();
 
 				// stats
