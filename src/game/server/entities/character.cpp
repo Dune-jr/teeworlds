@@ -377,7 +377,7 @@ void CCharacter::FireWeapon()
 			new CProjectile(GameWorld(), WEAPON_GRENADE,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
-				Direction,
+				Direction+vec2(m_Core.m_Vel.x/g_Config.m_SvFactor, m_Core.m_Vel.y/g_Config.m_SvFactor),
 				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
 				g_pData->m_Weapons.m_Grenade.m_pBase->m_Damage, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
 
