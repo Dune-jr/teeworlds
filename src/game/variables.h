@@ -137,6 +137,7 @@ MACRO_CONFIG_INT(SvGrenadeAmmoRegenNum, sv_grenade_ammo_regen_num, 6, 1, 10, CFG
 MACRO_CONFIG_INT(SvGrenadeAmmoRegenSpeedNade, sv_grenade_ammo_regen_speed, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_SERVER, "Give grenades back that push own player")
 
 MACRO_CONFIG_INT(SvGrenadeMinDamage, sv_grenade_min_damage, 4, 1, 6, CFGFLAG_SAVE|CFGFLAG_SERVER, "Minimum damage to kill player, grenade spawns explosions")
+MACRO_CONFIG_INT(SvGrenadeFactor, sv_grenade_factor, 0, 125, 100000, CFGFLAG_SAVE|CFGFLAG_SERVER, "Grenades inherit the player's speed by 1/factor")
 
 MACRO_CONFIG_INT(SvLaserAmmoRegen, sv_laser_ammo_regen, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_SERVER, "Activate or deactivate Laser ammo regeneration in general")
 MACRO_CONFIG_INT(SvLaserAmmoRegenTime, sv_laser_ammo_regen_time, 128, 1, 2000, CFGFLAG_SAVE|CFGFLAG_SERVER, "Laser ammo regeneration time in miliseconds")
