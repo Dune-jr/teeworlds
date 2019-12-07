@@ -15,6 +15,7 @@ CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, 
 	m_Direction = Dir;
 	m_LifeSpan = Span;
 	m_Owner = Owner;
+	m_OwnerTeam = GameServer()->m_apPlayers[Owner]->GetTeam();
 	m_Force = Force;
 	m_Damage = Damage;
 	m_SoundImpact = SoundImpact;
@@ -28,6 +29,14 @@ CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, 
 void CProjectile::Reset()
 {
 	GameServer()->m_World.DestroyEntity(this);
+}
+
+void CProjectile::LoseOwner()
+{
+	if(m_OwnerTeam == TEAM_BLUE)
+		m_Owner = PLAYER_TEAM_BLUE;
+	else
+		m_Owner = PLAYER_TEAM_RED;
 }
 
 vec2 CProjectile::GetPos(float Time)

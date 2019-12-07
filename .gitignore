@@ -10,6 +10,7 @@
 /other/*/windows
 __pycache__/
 *.dll
+*.dmg
 *.pyc
 *.pyo
 scripts/work/
@@ -32,6 +33,17 @@ teeworlds*
 teeworlds_srv*
 testrunner
 versionsrv*
+
+# IDE project files
+.cproject
+.idea
+.project
+.settings
+.vs
+.vscode
+out
+cscope.files
+cscope.out
 
 # CMake
 data

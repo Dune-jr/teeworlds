@@ -9,6 +9,7 @@
 #define BASE_SYSTEM_H
 
 #include "detect.h"
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1162,6 +1163,14 @@ void str_hex(char *dst, int dst_size, const void *data, int data_size);
 		- Guarantees that buffer string will contain zero-termination.
 */
 void str_timestamp(char *buffer, int buffer_size);
+void str_timestamp_format(char *buffer, int buffer_size, const char *format)
+GNUC_ATTRIBUTE((format(strftime, 3, 0)));
+void str_timestamp_ex(time_t time, char *buffer, int buffer_size, const char *format)
+GNUC_ATTRIBUTE((format(strftime, 4, 0)));
+
+#define FORMAT_TIME "%H:%M:%S"
+#define FORMAT_SPACE "%Y-%m-%d %H:%M:%S"
+#define FORMAT_NOSPACE "%Y-%m-%d_%H-%M-%S"
 
 /* Group: Filesystem */
 
@@ -1345,6 +1354,7 @@ void dbg_logger(DBG_LOGGER logger);
 void dbg_logger_stdout();
 void dbg_logger_debugger();
 void dbg_logger_file(const char *filename);
+void dbg_logger_filehandle(IOHANDLE handle);
 
 #if defined(CONF_FAMILY_WINDOWS)
 void dbg_console_init();
@@ -1394,7 +1404,19 @@ int str_utf8_is_whitespace(int code);
 	Remarks:
 		- The strings are treated as zero-terminated strings.
 */
-char *str_utf8_skip_whitespaces(char *str);
+const char *str_utf8_skip_whitespaces(const char *str);
+
+/*
+	Function: str_utf8_trim_whitespaces_right
+		Clears trailing utf8 whitespace characters from a string.
+
+	Parameters:
+		str - Pointer to the string.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+void str_utf8_trim_whitespaces_right(char *str);
 
 /*
 	Function: str_utf8_rewind
