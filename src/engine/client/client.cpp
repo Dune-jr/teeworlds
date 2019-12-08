@@ -1928,9 +1928,6 @@ void CClient::Run()
 	// init the input
 	Input()->Init();
 
-	// start refreshing addresses while we load
-	MasterServer()->RefreshAddresses(m_ContactClient.NetType());
-
 	// init the editor
 	m_pEditor->Init();
 
@@ -1940,6 +1937,9 @@ void CClient::Run()
 		return;
 
 	GameClient()->OnInit();
+
+	// start refreshing addresses while we load
+	MasterServer()->RefreshAddresses(m_ContactClient.NetType());
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
