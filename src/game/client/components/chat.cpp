@@ -252,7 +252,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 	}
 	else if(Event.m_Flags&IInput::FLAG_PRESS && (Event.m_Key == KEY_RETURN || Event.m_Key == KEY_KP_ENTER))
 	{
-		if(IsTypingCommand() && ExecuteCommand())
+		if(IsTypingCommand() && ExecuteCommand(true))
 		{
 			// everything is handled within
 		}
@@ -398,6 +398,10 @@ bool CChat::OnInput(IInput::CEvent Event)
 				m_InputUpdate = true;
 			}
 		}
+	}
+	else if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_SPACE && IsTypingCommand() && ExecuteCommand(false))
+	{
+		// handled in the condition guard
 	}
 	else
 	{
@@ -861,6 +865,26 @@ void CChat::OnRender()
 			m_InputUpdate = false;
 		}
 
+		if(IsTypingCommand())
+		{
+			if(m_pCommands->CountActiveCommands() != 0)
+			{
+				const char* pCommandStr = m_Input.GetString();
+				if(const CChatCommand* pCommand = m_pCommands->GetSelectedCommand())
+				{
+					bool IsFullMatch = str_find(pCommandStr, pCommand->m_pCommandText);
+					if(IsFullMatch)
+					{
+						const float LineHeight = 8.0f; // TODO fix
+						float TextWidth = TextRender()->TextWidth(0, Cursor.m_FontSize, pCommand->m_pCommandText, -1, -1);
+						dbg_msg("clientcommands", "%d %d %d %d", Cursor.m_X, Cursor.m_Y, TextWidth, LineHeight);
+						CUIRect Rect = {Cursor.m_X, Cursor.m_Y, TextWidth, LineHeight};
+						RenderTools()->DrawUIRect(&Rect, vec4(0.8f, 0.8f, 0.8f, 0.5f), 1.0f, CUI::CORNER_R);
+					}
+				}
+			}
+		}
+
 		//render buffered text
 		if(m_Mode == CHAT_NONE)
 		{
@@ -1302,7 +1326,7 @@ void CChat::HandleCommands(float x, float y, float w)
 	}
 }
 
-bool CChat::ExecuteCommand()
+bool CChat::ExecuteCommand(bool MayExecute)
 {
 	if(m_pCommands->CountActiveCommands() == 0)
 		return false;
@@ -1314,16 +1338,20 @@ bool CChat::ExecuteCommand()
 
 	if(IsFullMatch)
 	{
-		// execute command
-		if(pCommand->m_pfnFunc != 0)
-			pCommand->m_pfnFunc(this, pCommandStr);
+		if(MayExecute)
+		{
+			// execute command
+			if(pCommand->m_pfnFunc != 0)
+				pCommand->m_pfnFunc(this, pCommandStr);
+		}
 	}
 	else
 	{
 		// autocomplete command
 		char aBuf[128];
 		str_copy(aBuf, pCommand->m_pCommandText, sizeof(aBuf));
-		str_append(aBuf, " ", sizeof(aBuf));
+		if(MayExecute)
+			str_append(aBuf, " ", sizeof(aBuf));
 
 		m_Input.Set(aBuf);
 		m_Input.SetCursorOffset(str_length(aBuf));
