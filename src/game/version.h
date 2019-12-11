@@ -9,5 +9,6 @@
 #define RACE_VERSION "4.0-dev"
 #define DDRACE_VERSION "1.1"
 #define CLIENT_VERSION 0x0703
+#define SETTINGS_FILENAME "settings07"
 static const char GAME_RELEASE_VERSION[8] = "0.7.3.1";
 #endif

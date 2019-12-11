@@ -14,6 +14,7 @@
 #include <game/version.h>
 
 #include "entities/character.h"
+#include "entities/projectile.h"
 /*
 #include "gamemodes/ctf.h"
 #include "gamemodes/dm.h"
@@ -763,6 +764,14 @@ void CGameContext::OnClientTeamChange(int ClientID)
 {
 	if(m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS)
 		AbortVoteOnTeamChange(ClientID);
+
+	// mark client's projectile has team projectile
+	CProjectile *p = (CProjectile *)m_World.FindFirst(CGameWorld::ENTTYPE_PROJECTILE);
+	for(; p; p = (CProjectile *)p->TypeNext())
+	{
+		if(p->GetOwner() == ClientID)
+			p->LoseOwner();
+	}
 }
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
@@ -788,6 +797,14 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 		if(g_Config.m_SvSilentSpectatorMode && m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS)
 			Msg.m_Silent = true;
 		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD, -1);
+	}
+
+	// mark client's projectile has team projectile
+	CProjectile *p = (CProjectile *)m_World.FindFirst(CGameWorld::ENTTYPE_PROJECTILE);
+	for(; p; p = (CProjectile *)p->TypeNext())
+	{
+		if(p->GetOwner() == ClientID)
+			p->LoseOwner();
 	}
 
 	delete m_apPlayers[ClientID];
@@ -1096,6 +1113,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 				SendSkinChange(pPlayer->GetCID(), i);
 			}
+
+			m_pController->OnPlayerInfoChange(pPlayer);
 		}
 	}
 	else
