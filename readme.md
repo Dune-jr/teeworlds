@@ -23,6 +23,10 @@ the game, including new versions, custom maps and much more.
 
 Originally written by Magnus Auvinen.
 
+--------
+
+Teeworlds fully supports two build systems: bam and CMake. Below are instructions to build it for the major operating systems.
+
 
 Building on Linux or macOS
 ==========================
@@ -31,16 +35,16 @@ Installing dependencies
 -----------------------
 
     # Debian/Ubuntu
-    sudo apt install build-essential cmake git libfreetype6-dev libsdl2-dev libpnglite-dev libwavpack-dev python3
-
+    sudo apt install build-essential git libfreetype6-dev libsdl2-dev libpnglite-dev libwavpack-dev python3
+    
     # Fedora
-    sudo dnf install @development-tools cmake gcc-c++ git freetype-devel mesa-libGLU-devel pnglite-devel python3 SDL2-devel wavpack-devel
-
+    sudo dnf install @development-tools gcc-c++ git freetype-devel mesa-libGLU-devel pnglite-devel python3 SDL2-devel wavpack-devel
+    
     # Arch Linux (doesn't have pnglite in its repositories)
-    sudo pacman -S --needed base-devel cmake freetype2 git glu python sdl2 wavpack
-
+    sudo pacman -S --needed base-devel freetype2 git glu python sdl2 wavpack
+    
     # macOS
-    brew install cmake freetype sdl2
+    brew install freetype sdl2
 
 
 Downloading repository
@@ -48,13 +52,18 @@ Downloading repository
 
     git clone https://github.com/teeworlds/teeworlds --recurse-submodules
     cd teeworlds
-
+    
     # If you already cloned the repository before, use:
     # git submodule update --init
 
+Building 
+----------------------
 
-Building
---------
+### bam
+
+    bam conf=release all
+
+### CMake
 
     mkdir -p build
     cd build
@@ -63,12 +72,21 @@ Building
 
 On subsequent builds, you only have to repeat the `make` step.
 
-You can then run the client with `./teeworlds` and the server with
+You can then run the client from the build repository with `./teeworlds` and the server with
 `./teeworlds_srv`.
 
 
 Build options
 -------------
+
+### bam
+
+By default, `bam` compiles client and server in debug mode. You can specify
+
+`conf=release` to enable release mode
+
+
+### CMake
 
 The following options can be passed to the `cmake ..` command line (between the
 `cmake` and `..`) in the "Building" step above.
