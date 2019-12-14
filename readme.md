@@ -25,7 +25,7 @@ Originally written by Magnus Auvinen.
 
 --------
 
-Teeworlds fully supports two build systems: bam and CMake. Below are instructions to build it for the major operating systems.
+Teeworlds supports two build systems: bam and CMake. Below are build instructions for the major operating systems.
 
 
 Building on Linux or macOS
@@ -46,6 +46,7 @@ Installing dependencies
     # macOS
     brew install freetype sdl2
 
+You also need `bam` or `cmake` installed.
 
 Downloading repository
 ----------------------
@@ -61,7 +62,7 @@ Building
 
 ### bam
 
-    bam conf=release all
+    bam all
 
 ### CMake
 
@@ -81,9 +82,12 @@ Build options
 
 ### bam
 
-By default, `bam` compiles client and server in debug mode. You can specify
+By default, `bam` compiles client and server in **debug** mode. You can specify
 
-`conf=release` to enable release mode
+`conf=release`: Enable release mode and subsequent optimizations
+
+`server`: Disable generation of the client target. Can be useful on
+headless servers which don't have graphics libraries like SDL2 installed.
 
 
 ### CMake
@@ -106,13 +110,23 @@ headless servers which don't have graphics libraries like SDL2 installed.
 Building on Windows with Visual Studio
 ======================================
 
-Download and install some version of [Microsoft Visual
-Studio](https://www.visualstudio.com/) (as of writing, MSVS Community 2017)
-with the following components:
+Download and install some version of [Microsoft Visual Studio](https://visualstudio.microsoft.com/en/downloads/)] (as of writing, MSVS Community 2017) with the following components:
 
 * Desktop development with C++ (on the main page)
 * Python development (on the main page)
-* Git for Windows (in Individual Components → Code tools)
+* Git for Windows (in Individual Components → Code tools, optional for bam)
+
+### bam
+
+1. Download and unzip [Teeworlds source](https://github.com/teeworlds/teeworlds/releases) or [Teeworlds latest source](https://github.com/teeworlds/teeworlds/archive/master.zip) or use git to clone it
+2. Download and unzip [bam](https://github.com/teeworlds/bam/archive/master.zip) to `teeworlds-version\bam`
+3. Run the `x64 Native Tools Command Prompt` (or `x86 Native Tools Command Prompt` for x86) from the start menu.
+4. Navigate to `teeworlds-version\bam` and run `make_win64_msvc.bat` (or `make_win32_msvc.bat` for x86) to compile bam
+5. Navigate to `teeworlds-version` and run `bam\bam conf=release all ` to compile Teeworlds
+   - to build the debug version instead, use `conf=debug`
+   - 
+
+### CMake
 
 Run Visual Studio. Open the Team Explorer (View → Team Explorer, Ctrl+^,
 Ctrl+M). Click Clone (in the Team Explorer, Connect → Local Git Repositories).
@@ -129,7 +143,7 @@ For subsequent builds you only have to click the button with the green arrow
 again.
 
 
-Building on Windows with MinGW
+Building on Windows with MinGW and CMake
 ==============================
 
 Download and install MinGW with at least the following components:
@@ -151,10 +165,3 @@ click "Finish". Wait a bit (until the progress bar is full). Then click
 "Generate".
 
 You can now build Teeworlds by executing `mingw32-make` in the build directory.
-
-
-Building with bam, guides for all operating systems
-===================================================
-
-You can also compile Teeworlds with bam, a custom build system. Instructions
-for that can be found at https://www.teeworlds.com/?page=docs&wiki=hacking.
