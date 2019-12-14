@@ -21,6 +21,7 @@ struct CVoteOptionClient
 	CVoteOptionClient *m_pNext;
 	CVoteOptionClient *m_pPrev;
 	char m_aDescription[VOTE_DESC_LENGTH];
+	bool m_Votable;
 };
 
 struct CVoteOptionServer
@@ -29,6 +30,7 @@ struct CVoteOptionServer
 	CVoteOptionServer *m_pPrev;
 	char m_aDescription[VOTE_DESC_LENGTH];
 	char m_aCommand[1];
+	bool m_Votable;
 };
 
 #endif

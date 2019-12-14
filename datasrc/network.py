@@ -432,4 +432,9 @@ Messages = [
 		NetArray(NetBool("m_aUseCustomColors"), 6),
 		NetArray(NetIntAny("m_aSkinPartColors"), 6),
 	]),
+
+	# todo 0.8: merge with Sv_VoteOptionAdd 
+	NetMessage("Sv_VoteOptionAddLabel", [
+			NetStringStrict("m_pDescription"),
+	]),
 ]

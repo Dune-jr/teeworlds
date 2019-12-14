@@ -849,7 +849,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				CVoteOptionServer *pOption = m_pVoteOptionFirst;
 				while(pOption)
 				{
-					if(str_comp_nocase(pMsg->m_Value, pOption->m_aDescription) == 0)
+					if(str_comp_nocase(pMsg->m_Value, pOption->m_aDescription) == 0 && pOption->m_Votable)
 					{
 						str_format(aDesc, sizeof(aDesc), "%s", pOption->m_aDescription);
 						str_format(aCmd, sizeof(aCmd), "%s", pOption->m_aCommand);
@@ -1076,7 +1076,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				for(CVoteOptionServer *p = pCurrent; p && NumOptions < MAX_VOTE_OPTION_ADD; p = p->m_pNext, ++NumOptions);
 
 				// pack and send vote list packet
-				CMsgPacker Msg(NETMSGTYPE_SV_VOTEOPTIONLISTADD);
+				CMsgPacker Msg(NETMSGTYPE_SV_VOTEOPTIONLISTADD); // TODO! labels here DUNE
 				Msg.AddInt(NumOptions);
 				while(pCurrent && NumOptions--)
 				{
@@ -1252,11 +1252,9 @@ void CGameContext::ConForceTeamBalance(IConsole::IResult *pResult, void *pUserDa
 	pSelf->m_pController->ForceTeamBalance();
 }
 
-void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
+static void DoAddVote(CGameContext *pSelf, const char *pDescription, const char *pCommand, bool Votable)
 {
-	CGameContext *pSelf = (CGameContext *)pUserData;
-	const char *pDescription = pResult->GetString(0);
-	const char *pCommand = pResult->GetString(1);
+	dbg_msg("voting", "pDesc=%s, pCommand=%s, Votable=%d", pDescription, pCommand, Votable);
 
 	if(pSelf->m_NumVoteOptions == MAX_VOTE_OPTIONS)
 	{
@@ -1311,14 +1309,45 @@ void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
 
 	str_copy(pOption->m_aDescription, pDescription, sizeof(pOption->m_aDescription));
 	mem_copy(pOption->m_aCommand, pCommand, Len+1);
+	dbg_msg("voting", "pDesc=%s, pCommand=%s, Votable=%d", pDescription, pOption->m_aCommand, Votable);
+	
+	pOption->m_Votable = Votable;
 	char aBuf[256];
-	str_format(aBuf, sizeof(aBuf), "added option '%s' '%s'", pOption->m_aDescription, pOption->m_aCommand);
+	if(Votable)
+		str_format(aBuf, sizeof(aBuf), "added option '%s' '%s'", pOption->m_aDescription, pOption->m_aCommand);
+	else
+		str_format(aBuf, sizeof(aBuf), "added label '%s' '%s'", pOption->m_aDescription, pOption->m_aCommand);
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 
 	// inform clients about added option
 	CNetMsg_Sv_VoteOptionAdd OptionMsg;
 	OptionMsg.m_pDescription = pOption->m_aDescription;
-	pSelf->Server()->SendPackMsg(&OptionMsg, MSGFLAG_VITAL, -1);
+	if(Votable)
+		pSelf->Server()->SendPackMsg(&OptionMsg, MSGFLAG_VITAL, -1);
+	else
+		pSelf->Server()->SendPackMsg((CNetMsg_Sv_VoteOptionAddLabel*)&OptionMsg, MSGFLAG_VITAL, -1);
+}
+
+void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	const char *pDescription = pResult->GetString(0);
+	const char *pCommand = pResult->GetString(1);
+	bool Votable = true;
+	if(pDescription[0] == '#' && pDescription[1]) // descriptions starting with # are labels
+	{
+		pDescription = pDescription+1;
+		Votable = false;
+	}
+	DoAddVote(pSelf, pDescription, pCommand, Votable);
+}
+
+void CGameContext::ConAddVoteLabel(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	const char *pDescription = pResult->GetString(0);
+	const char *pCommand = pResult->GetString(1);
+	DoAddVote(pSelf, pDescription, pCommand, false);
 }
 
 void CGameContext::ConRemoveVote(IConsole::IResult *pResult, void *pUserData)
@@ -1471,6 +1500,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("force_teambalance", "", CFGFLAG_SERVER, ConForceTeamBalance, this, "Force team balance");
 
 	Console()->Register("add_vote", "sr", CFGFLAG_SERVER, ConAddVote, this, "Add a voting option");
+	Console()->Register("add_vote_label", "sr", CFGFLAG_SERVER, ConAddVoteLabel, this, "Add a label in the vote menu");
 	Console()->Register("remove_vote", "s", CFGFLAG_SERVER, ConRemoveVote, this, "remove a voting option");
 	Console()->Register("clear_votes", "", CFGFLAG_SERVER, ConClearVotes, this, "Clears the voting options");
 	Console()->Register("vote", "r", CFGFLAG_SERVER, ConVote, this, "Force a vote to yes/no");

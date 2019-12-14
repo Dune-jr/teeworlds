@@ -507,6 +507,10 @@ bool CMenus::RenderServerControlServer(CUIRect MainView)
 
 		if(Item.m_Visible)
 		{			
+			if(!pOption->m_Votable)
+			{
+				RenderTools()->DrawUIRect(&Item.m_Rect, vec4(1.0f, 1.0f, 1.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+            }
 			Item.m_Rect.VMargin(5.0f, &Item.m_Rect);
 			Item.m_Rect.y += 2.0f;
 			UI()->DoLabel(&Item.m_Rect, pOption->m_aDescription, Item.m_Rect.h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);

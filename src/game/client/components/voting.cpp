@@ -85,6 +85,13 @@ void CVoting::AddvoteOption(const char *pDescription, const char *pCommand)
 	Client()->Rcon(aBuf);
 }
 
+void CVoting::AddvotelabelOption(const char *pDescription, const char *pCommand)
+{
+	char aBuf[128];
+	str_format(aBuf, sizeof(aBuf), "add_vote_label \"%s\" %s", pDescription, pCommand);
+	Client()->Rcon(aBuf);
+}
+
 void CVoting::Vote(int v)
 {
 	CNetMsg_Cl_Vote Msg = {v};
@@ -97,7 +104,7 @@ CVoting::CVoting()
 	Clear();
 }
 
-void CVoting::AddOption(const char *pDescription)
+void CVoting::AddOption(const char *pDescription, bool Votable)
 {
 	CVoteOptionClient *pOption;
 	if(m_pRecycleFirst)
@@ -121,6 +128,7 @@ void CVoting::AddOption(const char *pDescription)
 		m_pFirst = pOption;
 
 	str_copy(pOption->m_aDescription, pDescription, sizeof(pOption->m_aDescription));
+	pOption->m_Votable = Votable;
 	++m_NumVoteOptions;
 }
 
@@ -260,7 +268,12 @@ void CVoting::OnMessage(int MsgType, void *pRawMsg)
 	else if(MsgType == NETMSGTYPE_SV_VOTEOPTIONADD)
 	{
 		CNetMsg_Sv_VoteOptionAdd *pMsg = (CNetMsg_Sv_VoteOptionAdd *)pRawMsg;
-		AddOption(pMsg->m_pDescription);
+		AddOption(pMsg->m_pDescription, true);
+	}
+	else if(MsgType == NETMSGTYPE_SV_VOTEOPTIONADDLABEL)
+	{
+		CNetMsg_Sv_VoteOptionAddLabel *pMsg = (CNetMsg_Sv_VoteOptionAddLabel *)pRawMsg;
+		AddOption(pMsg->m_pDescription, false);
 	}
 	else if(MsgType == NETMSGTYPE_SV_VOTEOPTIONREMOVE)
 	{

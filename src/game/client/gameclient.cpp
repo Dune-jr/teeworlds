@@ -554,7 +554,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 			if(pUnpacker->Error())
 				return;
 
-			m_pVoting->AddOption(pDescription);
+			m_pVoting->AddOption(pDescription, true);
 		}
 	}
 	else if(MsgId == NETMSGTYPE_SV_GAMEMSG)
