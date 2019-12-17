@@ -2642,7 +2642,10 @@ int main(int argc, const char **argv) // ignore_convention
 	{
 		// execute config file
 		if(!pConsole->ExecuteFile(SETTINGS_FILENAME ".cfg"))
+		{
 			pConsole->ExecuteFile("settings.cfg"); // fallback to legacy naming scheme
+			str_copy(g_Config.m_ClMenuMap, "winter", sizeof(g_Config.m_ClMenuMap));
+		}
 
 		// execute autoexec file
 		pConsole->ExecuteFile("autoexec.cfg");
