@@ -1,6 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <new>
+#include <stdio.h> // sscanf
 
 #include <base/math.h>
 #include <base/system.h>
@@ -432,8 +433,21 @@ bool CConsole::ExecuteFile(const char *pFilename)
 		Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 		lr.Init(File);
 
-		while((pLine = lr.Get()))
-			ExecuteLine(pLine);
+		pLine = lr.Get();
+		if(pLine && *pLine == '#')
+		{
+			// scan for game version info
+			int Zero, Major, Minor;
+			if(sscanf(pLine, "# Teeworlds %d.%d.%d", &Zero, &Major, &Minor) == 3)
+				g_Config.m_ClLastVersionPlayed = (Zero << 8) + (Major << 4) + Minor;
+			else
+				g_Config.m_ClLastVersionPlayed = 0; // prior to 0.7.3
+
+			do
+			{
+				ExecuteLine(pLine);
+			} while((pLine = lr.Get()));
+		}
 
 		io_close(File);
 	}

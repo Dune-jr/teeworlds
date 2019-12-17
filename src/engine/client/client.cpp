@@ -2532,6 +2532,12 @@ void CClient::ConnectOnStart(const char *pAddress)
 	str_copy(m_aCmdConnect, pAddress, sizeof(m_aCmdConnect));
 }
 
+void CClient::DoVersionSpecificActions()
+{
+	if(g_Config.m_ClLastVersionPlayed < 0x0703)
+		str_copy(g_Config.m_ClMenuMap, "winter", sizeof(g_Config.m_ClMenuMap));
+}
+
 /*
 	Server Time
 	Client Mirror Time
@@ -2643,6 +2649,7 @@ int main(int argc, const char **argv) // ignore_convention
 		// execute config file
 		if(!pConsole->ExecuteFile(SETTINGS_FILENAME ".cfg"))
 			pConsole->ExecuteFile("settings.cfg"); // fallback to legacy naming scheme
+		pClient->DoVersionSpecificActions();
 
 		// execute autoexec file
 		pConsole->ExecuteFile("autoexec.cfg");
