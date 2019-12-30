@@ -2201,8 +2201,6 @@ int CMenus::GameIconScan(const char *pName, int IsDir, int DirType, void *pUser)
 		return 0;
 	}
 	CGameIcon GameIcon(aGameIconName);
-	str_format(aBuf, sizeof(aBuf), "loaded gametype icon '%s'", aGameIconName);
-	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "game", aBuf);
 
 	GameIcon.m_IconTexture = pSelf->Graphics()->LoadTextureRaw(CGameIcon::GAMEICON_SIZE, CGameIcon::GAMEICON_SIZE, Info.m_Format, Info.m_pData, Info.m_Format, IGraphics::TEXLOAD_LINEARMIPMAPS);
 	pSelf->m_lGameIcons.add(GameIcon);
@@ -2228,6 +2226,9 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 	{
 		Storage()->ListDirectory(IStorage::TYPE_ALL, "ui/gametypes", GameIconScan, this);
 		s_Init = false;
+		char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), "loaded %d gametype icons", m_lGameIcons.size());
+		Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 	}
 
 	CUIRect ServerList, Sidebar, BottomBox, SidebarButton;
