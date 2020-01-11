@@ -91,16 +91,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-    include:
-    - os: ubuntu-latest
-      package-file: teeworlds-*-linux_x86_64.tar.gz
-      make_release-args: linux_x86_64
-    - os: macOS-latest
-      package-file: teeworlds-*-osx.dmg
-      make_release-args: osx
-    - os: windows-latest
-      package-file: teeworlds-*-win64.zip
-      make_release-args: win64
+        include:
+        - os: ubuntu-latest
+          package-file: teeworlds-*-linux_x86_64.tar.gz
+          make_release-args: linux_x86_64
+        - os: macOS-latest
+          package-file: teeworlds-*-osx.dmg
+          make_release-args: osx
+        - os: windows-latest
+          package-file: teeworlds-*-win64.zip
+          make_release-args: win64
 
     steps:
     - uses: actions/checkout@v2
@@ -160,4 +160,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: teeworlds-${{ matrix.os }}
-        path: release/artifacts
+        path: ./artifacts
