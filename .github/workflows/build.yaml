@@ -152,7 +152,7 @@ jobs:
 
     - name: Package
       run: |
-        python scripts/make_release.py gamer {{ matrix.make_release-args }}
+        python scripts/make_release.py gamer ${{ matrix.make_release-args }}
         mkdir artifacts
         mv ${{ matrix.package-file }} artifacts
 
