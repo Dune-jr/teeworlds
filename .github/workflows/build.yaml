@@ -1,4 +1,4 @@
-name: Build
+ name: Build
 
 on: [push, pull_request]
 
@@ -86,24 +86,21 @@ jobs:
         ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target run_tests
         ./teeworlds_srv shutdown
 
-    - name: Package
-      run: |
-        cd release
-        ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target package_default
-        mkdir artifacts
-        mv ${{ matrix.package-file }} artifacts
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: teeworlds-${{ matrix.os }}
-        path: release/artifacts
-
   build-bam:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
+    include:
+    - os: ubuntu-latest
+      package-file: teeworlds-*-linux_x86_64.tar.gz
+      make_release-args: linux_x86_64
+    - os: macOS-latest
+      package-file: teeworlds-*-osx.dmg
+      make_release-args: osx
+    - os: windows-latest
+      package-file: teeworlds-*-win64.zip
+      make_release-args: win64
 
     steps:
     - uses: actions/checkout@v2
@@ -152,3 +149,15 @@ jobs:
       run: ./bam/bam conf=release all
     - name: Test release
       run: ./build/x86_64/release/teeworlds_srv shutdown
+
+    - name: Package
+      run: |
+        python make_release.py gamer {{ matrix.make_release-args }}
+        mkdir artifacts
+        mv ${{ matrix.package-file }} artifacts
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: teeworlds-${{ matrix.os }}
+        path: release/artifacts
