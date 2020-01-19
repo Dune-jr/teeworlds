@@ -125,8 +125,22 @@ void CSoundInd::Create(vec2 Pos, int Type)
 
 static vec3 getColorOfType(int Type)
 {
-	float Hue = ((90+Type*13)%100)/100.0f;
+	// Magic value is 3
+	float Hue = ((90+Type*3)%100)/100.0f;
 	return HslToRgb(vec3(Hue, 84/100.0f, 50/100.0f));
+}
+
+static const char* getStringOfSoundType(int Type)
+{
+	dbg_assert(Type >= 0, "Sonud type < 0");
+	const char* apSoundStrs[] = {
+		"GUN_FIRE", "SHOTGUN_FIRE", "GRENADE_FIRE", "HAMMER_FIRE", "HAMMER_HIT", "NINJA_FIRE", "GRENADE_EXPLODE", "NINJA_HIT",
+		"RIFLE_FIRE", "RIFLE_BOUNCE", "WEAPON_SWITCH", "PLAYER_PAIN_SHORT", "PLAYER_PAIN_LONG", "BODY_LAND", "PLAYER_AIRJUMP",
+		"PLAYER_JUMP", "PLAYER_DIE", "PLAYER_SPAWN", "PLAYER_SKID", "TEE_CRY", "HOOK_LOOP", "HOOK_ATTACH_GROUND", "HOOK_ATTACH_PLAYER",
+		"HOOK_NOATTACH", "PICKUP_HEALTH", "PICKUP_ARMOR", "PICKUP_GRENADE", "PICKUP_SHOTGUN", "PICKUP_NINJA", "WEAPON_SPAWN", "WEAPON_NOAMMO",
+		"HIT", "CHAT_SERVER", "CHAT_CLIENT", "CHAT_HIGHLIGHT", "CTF_DROP", "CTF_RETURN", "CTF_GRAB_PL", "CTF_GRAB_EN", "CTF_CAPTURE", "MENU"
+	};
+	return apSoundStrs[Type];
 }
 
 void CSoundInd::OnRender()
@@ -159,6 +173,11 @@ void CSoundInd::OnRender()
 			CUIRect IndicatorRect = {Pos.x - Size/2.0f, Pos.y - Size/2.0f, Size, Size};
 			vec3 Color = getColorOfType(m_aItems[i].m_Type);
 			RenderTools()->DrawUIRect(&IndicatorRect, vec4(Color.r*Alpha, Color.g*Alpha, Color.b*Alpha, Alpha/2.0f), CUI::CORNER_ALL,Size/2.0f);
+			if(Life > 0.25f)
+			{
+				IndicatorRect.y += Size/2.0f - 4.0f;
+				UI()->DoLabel(&IndicatorRect, getStringOfSoundType(m_aItems[i].m_Type), 8.0f, CUI::ALIGN_CENTER);
+			}
 			i++;
 		}
 	}
