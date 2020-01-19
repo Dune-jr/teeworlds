@@ -117,6 +117,7 @@ static CScoreboard gs_Scoreboard;
 static CSounds gs_Sounds;
 static CEmoticon gs_Emoticon;
 static CDamageInd gsDamageInd;
+static CSoundInd gsSoundInd;
 static CVoting gs_Voting;
 static CSpectator gs_Spectator;
 static CStats gs_Stats;
@@ -244,6 +245,7 @@ void CGameClient::OnConsoleInit()
 	m_pSounds = &::gs_Sounds;
 	m_pMotd = &::gs_Motd;
 	m_pDamageind = &::gsDamageInd;
+	m_pSoundind = &::gsSoundInd;
 	m_pMapimages = &::gs_MapImages;
 	m_pEntities = &::gs_Entities;
 	m_pVoting = &::gs_Voting;
@@ -281,6 +283,7 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_NamePlates);
 	m_All.Add(&m_pParticles->m_RenderGeneral);
 	m_All.Add(m_pDamageind);
+	m_All.Add(m_pSoundind);
 	m_All.Add(&gs_Hud);
 	m_All.Add(&gs_Spectator);
 	m_All.Add(&gs_Emoticon);
@@ -1037,7 +1040,7 @@ void CGameClient::ProcessEvents()
 		if(Item.m_Type == NETEVENTTYPE_DAMAGE)
 		{
 			CNetEvent_Damage *ev = (CNetEvent_Damage *)pData;
-			m_pEffects->DamageIndicator(vec2(ev->m_X, ev->m_Y), ev->m_HealthAmount + ev->m_ArmorAmount);
+			m_pEffects->SoundIndicator(vec2(ev->m_X, ev->m_Y), ev->m_HealthAmount + ev->m_ArmorAmount);
 		}
 		else if(Item.m_Type == NETEVENTTYPE_EXPLOSION)
 		{
@@ -1063,6 +1066,7 @@ void CGameClient::ProcessEvents()
 		{
 			CNetEvent_SoundWorld *ev = (CNetEvent_SoundWorld *)pData;
 			m_pSounds->PlayAt(CSounds::CHN_WORLD, ev->m_SoundID, 1.0f, vec2(ev->m_X, ev->m_Y));
+			m_pEffects->SoundIndicator(vec2(ev->m_X, ev->m_Y), ev->m_SoundID);
 		}
 	}
 }
@@ -1081,7 +1085,10 @@ void CGameClient::ProcessTriggeredEvents(int Events, vec2 Pos)
 	if(Events&COREEVENTFLAG_HOOK_ATTACH_GROUND)
 		m_pSounds->PlayAt(CSounds::CHN_WORLD, SOUND_HOOK_ATTACH_GROUND, 1.0f, Pos);
 	if(Events&COREEVENTFLAG_HOOK_HIT_NOHOOK)
+	{
 		m_pSounds->PlayAt(CSounds::CHN_WORLD, SOUND_HOOK_NOATTACH, 1.0f, Pos);
+		m_pEffects->SoundIndicator(Pos, 0);
+	}
 	/*if(Events&COREEVENTFLAG_HOOK_LAUNCH)
 		m_pSounds->PlayAt(CSounds::CHN_WORLD, SOUND_HOOK_LOOP, 1.0f, Pos);
 	if(Events&COREEVENTFLAG_HOOK_RETRACT)

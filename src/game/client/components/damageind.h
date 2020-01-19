@@ -33,4 +33,33 @@ public:
 	virtual void OnRender();
 	virtual void OnReset();
 };
+
+class CSoundInd : public CComponent
+{
+	struct CItem
+	{
+		vec2 m_Pos;
+		float m_StartTime;
+		int m_Type;
+	};
+
+	enum
+	{
+		MAX_ITEMS=256,
+	};
+
+	CItem m_aItems[MAX_ITEMS];
+	int m_NumItems;
+
+	CItem *CreateI();
+	void DestroyI(CItem *i);
+
+public:
+	CSoundInd();
+
+	void Create(vec2 Pos, int Type);
+	virtual void OnRender();
+	virtual void OnReset();
+};
+
 #endif

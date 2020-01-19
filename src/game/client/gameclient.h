@@ -351,6 +351,7 @@ public:
 	class CFlow *m_pFlow;
 	class CChat *m_pChat;
 	class CDamageInd *m_pDamageind;
+	class CSoundInd *m_pSoundind;
 	class CCamera *m_pCamera;
 	class CControls *m_pControls;
 	class CEffects *m_pEffects;

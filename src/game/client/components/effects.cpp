@@ -81,6 +81,11 @@ void CEffects::DamageIndicator(vec2 Pos, int Amount)
 	m_DamageTakenTick = Client()->LocalTime();
 }
 
+void CEffects::SoundIndicator(vec2 Pos, int Type)
+{
+	m_pClient->m_pSoundind->Create(Pos, Type);
+}
+
 void CEffects::PowerupShine(vec2 Pos, vec2 size)
 {
 	if(!m_Add50hz)
