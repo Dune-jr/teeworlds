@@ -695,7 +695,7 @@ void CPlayers::RenderHealthBar(vec2 Position, int hp, int armor, int Ammo, int W
 		const vec4 ArmorColor = vec4(0.25f, 0.45f, 1.0f, 1.0f);
 		const vec4 AmmoColor = Ammo ? vec4(0.75f, 0.75f, 0.75f, 0.85f) : vec4(0.8f, 0.2f, 0.2f, 1.0f);
 		const vec4 ShadowColor = vec4(0.1f, 0.1f, 0.1f, 0.4f);
-		const vec4 (&aColors)[] = {HealthColor, ArmorColor, AmmoColor};
+		const vec4 aColors[] = {HealthColor, ArmorColor, AmmoColor};
 
 		m_HealthBarStartInfo.Feed(hp, armor, Ammo);
 		for(int ElementIndex = 0; ElementIndex < 3; ElementIndex++) // health -> armor -> ammo
