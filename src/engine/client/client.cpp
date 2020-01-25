@@ -183,6 +183,8 @@ void CSmoothTime::Init(int64 Target)
 	m_aAdjustSpeed[0] = 0.3f;
 	m_aAdjustSpeed[1] = 0.3f;
 	m_Graph.Init(0.0f, 0.5f);
+	m_SpikeCounter = 0;
+	m_BadnessScore = -100;
 }
 
 void CSmoothTime::SetAdjustSpeed(int Direction, float Value)
@@ -241,11 +243,13 @@ void CSmoothTime::Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustD
 		{
 			// ignore this ping spike
 			UpdateTimer = 0;
-			pGraph->Add(TimeLeft, 1,1,0);
+			pGraph->Add(TimeLeft, 1,1,0); // yellow
+			m_BadnessScore += 10;
 		}
 		else
 		{
-			pGraph->Add(TimeLeft, 1,0.3f,0.3f);
+			pGraph->Add(TimeLeft, 1,0.3f,0.3f); // red
+			m_BadnessScore += 50;
 			if(m_aAdjustSpeed[AdjustDirection] < 30.0f)
 				m_aAdjustSpeed[AdjustDirection] *= 2.0f;
 		}
@@ -255,7 +259,7 @@ void CSmoothTime::Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustD
 		if(m_SpikeCounter)
 			m_SpikeCounter--;
 
-		pGraph->Add(TimeLeft, 0.5f,1,0.5f);
+		pGraph->Add(TimeLeft, 0.5f,1,0.5f); // green
 
 		m_aAdjustSpeed[AdjustDirection] *= 0.95f;
 		if(m_aAdjustSpeed[AdjustDirection] < 2.0f)
@@ -264,6 +268,8 @@ void CSmoothTime::Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustD
 
 	if(UpdateTimer)
 		UpdateInt(Target);
+
+	m_BadnessScore -= 1+m_BadnessScore/100;
 }
 
 CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotDelta)
@@ -412,6 +418,11 @@ void CClient::RenderInputtimeMarginGraph(float x, float y, float w, float h)
 	m_InputtimeMarginGraph.ScaleMin();
 	m_InputtimeMarginGraph.ScaleMax();
 	m_InputtimeMarginGraph.RenderLite(Graphics(), m_DebugFont, x, y, w, h);
+}
+
+int CClient::GetInputtimeMarginStabilityScore()
+{
+	return m_PredictedTime.GetStabilityScore();
 }
 
 void CClient::SendInput()

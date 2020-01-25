@@ -101,6 +101,7 @@ public:
 
 	// graphs (gamer)
 	virtual void RenderInputtimeMarginGraph(float x, float sp, float w, float h) = 0;
+	virtual int GetInputtimeMarginStabilityScore() = 0;
 
 	//
 	virtual const char *GetCurrentMapName() const = 0;

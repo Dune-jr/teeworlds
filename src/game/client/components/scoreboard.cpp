@@ -193,7 +193,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	float LineHeight = 20.0f;
 	float TeeSizeMod = 1.0f;
 	float Spacing = 2.0f;
-	float PingOffset = x+Spacing, PingLength = 35.0f;
+	float PingOffset = x+Spacing, PingLength = 55.0f;
 	float CountryFlagOffset = PingOffset+PingLength, CountryFlagLength = 20.f;
 	float IdSize = g_Config.m_ClShowUserId ? LineHeight : 0.0f;
 	float ReadyLength = ReadyMode ? 10.f : 0.f;
@@ -545,8 +545,35 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				float GraphY = y-LineHeight/2.0f;
 				float GraphW = PingLength;
 				float GraphH = LineHeight*3.0f;
-				Client()->RenderInputtimeMarginGraph(GraphX, GraphY, GraphW, GraphH);
+
+				if(g_Config.m_ClPingGraph == 2)
+				{
+					char aBuf[32];
+					const int NumBars = 5;
+					int ScoreThresolds[NumBars] = {4000, 1000, 250, 75, -50};
+					int Score = Client()->GetInputtimeMarginStabilityScore();
+					str_format(aBuf, sizeof(aBuf), "%d", Score);
+					CUIRect BarRect = {GraphX, GraphY, GraphW, GraphH};
+					UI()->DoLabel(&BarRect, aBuf, 12.0f, CUI::ALIGN_LEFT);
+					BarRect.y = y+LineHeight/2.0f-LineHeight/8.0f;
+					BarRect.h = LineHeight-LineHeight/2.0f;
+					BarRect.w = 4.0f;
+					BarRect.x -= BarRect.w;
+					for(int Bar = 0; Bar < NumBars; Bar++)
+					{
+						if(Score > ScoreThresolds[Bar])
+							break;
+						BarRect.x += BarRect.w + 1.0f;
+						CUIRect LocalBarRect = BarRect;
+						LocalBarRect.h = BarRect.h*(Bar+2)/(float)NumBars+1.0f;
+						LocalBarRect.y = BarRect.y + BarRect.h - LocalBarRect.h;
+						RenderTools()->DrawUIRect(&LocalBarRect, vec4(0.2f,0.2f,0.2f,0.5f), 0, 0);
+					}
+				}
+				// else
+					Client()->RenderInputtimeMarginGraph(GraphX, GraphY, GraphW, GraphH);
 			}
+			
 			// ping
 			TextRender()->TextColor(TextColor.r, TextColor.g, TextColor.b, 0.5f*ColorAlpha);
 			str_format(aBuf, sizeof(aBuf), "%d", clamp(pInfo->m_pPlayerInfo->m_Latency, 0, 999));
