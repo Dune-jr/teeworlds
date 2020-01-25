@@ -550,7 +550,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				{
 					char aBuf[32];
 					const int NumBars = 5;
-					int ScoreThresolds[NumBars] = {4000, 1000, 250, 75, -50};
+					int ScoreThresolds[NumBars] = {0, 1000, 250, 50, -80};
 					int Score = Client()->GetInputtimeMarginStabilityScore();
 					str_format(aBuf, sizeof(aBuf), "%d", Score);
 					CUIRect BarRect = {GraphX, GraphY, GraphW, GraphH};
@@ -561,7 +561,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 					BarRect.x -= BarRect.w;
 					for(int Bar = 0; Bar < NumBars; Bar++)
 					{
-						if(Score > ScoreThresolds[Bar])
+						if(Bar != 0 && Score > ScoreThresolds[Bar])
 							break;
 						BarRect.x += BarRect.w + 1.0f;
 						CUIRect LocalBarRect = BarRect;
