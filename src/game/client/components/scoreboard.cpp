@@ -193,7 +193,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	float LineHeight = 20.0f;
 	float TeeSizeMod = 1.0f;
 	float Spacing = 2.0f;
-	float PingOffset = x+Spacing, PingLength = 55.0f;
+	float PingOffset = x+Spacing, PingLength = 35.0f;
 	float CountryFlagOffset = PingOffset+PingLength, CountryFlagLength = 20.f;
 	float IdSize = g_Config.m_ClShowUserId ? LineHeight : 0.0f;
 	float ReadyLength = ReadyMode ? 10.f : 0.f;
@@ -548,13 +548,15 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 				if(g_Config.m_ClPingGraph == 2)
 				{
-					char aBuf[32];
 					const int NumBars = 5;
 					int ScoreThresolds[NumBars] = {0, 1000, 250, 50, -80};
 					int Score = Client()->GetInputtimeMarginStabilityScore();
-					str_format(aBuf, sizeof(aBuf), "%d", Score);
 					CUIRect BarRect = {GraphX, GraphY, GraphW, GraphH};
-					UI()->DoLabel(&BarRect, aBuf, 12.0f, CUI::ALIGN_LEFT);
+					/*{
+						char aBuf[32];
+						str_format(aBuf, sizeof(aBuf), "%d", Score);
+						UI()->DoLabel(&BarRect, aBuf, 12.0f, CUI::ALIGN_LEFT);
+					}*/
 					BarRect.y = y+LineHeight/2.0f-LineHeight/8.0f;
 					BarRect.h = LineHeight-LineHeight/2.0f;
 					BarRect.w = 4.0f;
@@ -570,7 +572,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 						RenderTools()->DrawUIRect(&LocalBarRect, vec4(0.2f,0.2f,0.2f,0.5f), 0, 0);
 					}
 				}
-				// else
+				else if(g_Config.m_ClPingGraph == 1)
 					Client()->RenderInputtimeMarginGraph(GraphX, GraphY, GraphW, GraphH);
 			}
 			
