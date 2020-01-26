@@ -4,9 +4,7 @@
 #include "graphics_threaded.h"
 #include <base/tl/threading.h>
 #include <GL/gl.h>
-#ifdef CONF_FAMILY_WINDOWS
-	#include "SDL_syswm.h"
-#endif
+#include "SDL_syswm.h"
 
 #if defined(CONF_PLATFORM_MACOSX)
 
