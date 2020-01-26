@@ -3,11 +3,10 @@
 // gamer
 #include "graphics_threaded.h"
 #include <base/tl/threading.h>
-#include <GL/gl.h>
 #include "SDL_syswm.h"
 
 #if defined(CONF_PLATFORM_MACOSX)
-
+	#include <OpenGL/gl.h>
 	#include <objc/objc-runtime.h>
 
 	class semaphore
@@ -40,6 +39,8 @@
 			((id (*)(id, SEL))objc_msgSend)(m_Pool, selector);
 		}
 	};
+#else
+	#include <GL/gl.h>
 #endif
 
 
