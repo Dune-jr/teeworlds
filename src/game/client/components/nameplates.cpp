@@ -36,8 +36,19 @@ void CNamePlates::RenderNameplate(
 		if(!g_Config.m_TcNameplateScore)
 			str_format(aName, sizeof(aName), "%s", g_Config.m_ClShowsocial ? m_pClient->m_aClients[ClientID].m_aName: "");
 		else
-			str_format(aName, sizeof(aName), "%s (%d)", g_Config.m_ClShowsocial ? m_pClient->m_aClients[ClientID].m_aName: "",
-				pPlayerInfo->m_Score);
+		{
+			char aScore[32];
+			// score
+			if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_RACE)
+			{
+				aScore[0] = 0;
+				if(pPlayerInfo->m_Score >= 0)
+					FormatTime(aScore, sizeof(aScore), pPlayerInfo->m_Score, m_pClient->RacePrecision());
+			}
+			else
+				str_format(aScore, sizeof(aScore), "%d", clamp(pPlayerInfo->m_Score, -999, 9999));
+			str_format(aName, sizeof(aName), "%s (%s)", g_Config.m_ClShowsocial ? m_pClient->m_aClients[ClientID].m_aName: "", aScore);
+		}
 
 		CTextCursor Cursor;
 		float tw = TextRender()->TextWidth(0, FontSize, aName, -1, -1.0f) + RenderTools()->GetClientIdRectSize(FontSize);
