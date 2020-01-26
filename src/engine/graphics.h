@@ -215,6 +215,8 @@ public:
 	virtual int WindowActive() = 0;
 	virtual int WindowOpen() = 0;
 
+	// gamer
+	virtual void GetWindowWMInfo(void* pSystemInfo) = 0;
 };
 
 extern IEngineGraphics *CreateEngineGraphics(); // NOTE: not used

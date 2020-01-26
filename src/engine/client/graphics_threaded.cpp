@@ -915,7 +915,12 @@ int CGraphics_Threaded::WindowActive()
 int CGraphics_Threaded::WindowOpen()
 {
 	return m_pBackend->WindowOpen();
+}
 
+// gamer
+void CGraphics_Threaded::GetWindowWMInfo(void* pSystemInfo)
+{
+	m_pBackend->GetWindowWMInfo(pSystemInfo);
 }
 
 void CGraphics_Threaded::ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h)

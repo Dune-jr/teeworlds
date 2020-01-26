@@ -22,6 +22,9 @@
 #include "chat.h"
 #include "binds.h"
 
+#ifdef CONF_FAMILY_WINDOWS // for taskbar flashing
+	#include "SDL_syswm.h"
+#endif
 
 void CChat::OnReset()
 {
@@ -688,6 +691,25 @@ void CChat::AddLine(int ClientID, int Mode, const char *pLine, int TargetID)
 		{
 			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, !g_Config.m_ClSwapChatSounds ? SOUND_CHAT_HIGHLIGHT : SOUND_CHAT_CLIENT, 0);
 			m_aLastSoundPlayed[CHAT_HIGHLIGHT] = Now;
+			// highlight window
+
+#ifdef CONF_FAMILY_WINDOWS
+			if(g_Config.m_ClFlashTaskbar)
+			{
+				SDL_SysWMinfo systemInfo; SDL_VERSION(&systemInfo.version);
+				static IEngineGraphics* spGraphics = Kernel()->RequestInterface<IEngineGraphics>();
+				spGraphics->GetWindowWMInfo(&systemInfo);
+
+				// https://stackoverflow.com/a/25482046/3660320
+				FLASHWINFO flash;
+				flash.cbSize = sizeof(FLASHWINFO);
+				flash.hwnd = systemInfo.info.win.window;
+				flash.dwFlags = FLASHW_TIMERNOFG;  // Flashes until the window is focused.
+				flash.uCount = 1;
+				flash.dwTimeout = 100;  // The flash interval in milliseconds.
+				FlashWindowEx(&flash);
+			}
+#endif
 		}
 	}
 	else

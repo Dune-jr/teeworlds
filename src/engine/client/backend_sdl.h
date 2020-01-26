@@ -1,8 +1,15 @@
 #pragma once
 
+// gamer
 #include "graphics_threaded.h"
+#include <base/tl/threading.h>
+#include <GL/gl.h>
+#ifdef CONF_FAMILY_WINDOWS
+	#include "SDL_syswm.h"
+#endif
 
 #if defined(CONF_PLATFORM_MACOSX)
+
 	#include <objc/objc-runtime.h>
 
 	class semaphore
@@ -215,4 +222,7 @@ public:
 	virtual bool GetDesktopResolution(int Index, int *pDesktopWidth, int* pDesktopHeight);
 	virtual int WindowActive();
 	virtual int WindowOpen();
+	// gamer
+	virtual void GetWindowWMInfo(void* pSystemInfo)
+		{ SDL_GetWindowWMInfo(m_pWindow, (SDL_SysWMinfo*)pSystemInfo); }
 };
