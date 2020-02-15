@@ -14,6 +14,8 @@ MACRO_CONFIG_INT(GfxHealthBarDamagedOnly, gfx_healthbar_damaged_only, 1, 1, 0, C
 MACRO_CONFIG_INT(GfxArmorUnderHealth, gfx_armor_under_health, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render the armor bar under the health")
 MACRO_CONFIG_INT(GfxHealthBarNumbers, gfx_healthbar_numbers, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render numbers next to the healthbar")
 
+MACRO_CONFIG_INT(ClAdaptivePickups, cl_adaptive_pickups, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Make pickups grey when you don't need them")
+
 // HUD related features
 MACRO_CONFIG_INT(ClGcolor, cl_gcolor, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gamer colors - show health as tee colors")
 MACRO_CONFIG_INT(ClGhud, cl_ghud, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gamer HUD")

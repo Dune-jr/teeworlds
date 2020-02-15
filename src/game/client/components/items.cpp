@@ -106,7 +106,7 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 	{
 		return;
 	}
-
+	
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
@@ -147,7 +147,17 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 		Size = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_VisualSize;
 		break;
 	}
-	
+
+	if(g_Config.m_ClAdaptivePickups 
+		&& m_pClient->m_Snap.m_pLocalCharacter
+		&& !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&(GAMESTATEFLAG_ROUNDOVER|GAMESTATEFLAG_GAMEOVER)))
+	{
+		if((pCurrent->m_Type == PICKUP_HEALTH && m_pClient->m_Snap.m_pLocalCharacter->m_Health == 10)
+			|| (pCurrent->m_Type == PICKUP_ARMOR && m_pClient->m_Snap.m_pLocalCharacter->m_Armor == 10))
+		{
+			Graphics()->SetColor(0.35f, 0.35f, 0.35f, 0.5f);
+		}
+	}
 
 	Graphics()->QuadsSetRotation(Angle);
 
