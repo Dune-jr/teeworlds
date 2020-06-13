@@ -455,7 +455,7 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 	UiDoListboxHeader(&s_ListBoxState, &MainView, Localize("Skins"), 20.0f, 2.0f);
 	CUIRect Label = s_ListBoxState.m_ListBoxView;
 	Label.y += s_ListBoxState.m_ListBoxView.h - 15.0f;
-	UI()->DoLabel(&Label, "(Gamer/Sonix = blue, Custom = green)", (GetListHeaderHeight()+2.0f)*ms_FontmodHeight*0.6f, CUI::ALIGN_RIGHT);
+	UI()->DoLabel(&Label, "(Gamer,Sonix = blue; Custom = green)", (GetListHeaderHeight()+2.0f)*ms_FontmodHeight*0.6f, CUI::ALIGN_RIGHT);
 	UiDoListboxStart(&s_ListBoxState, &m_RefreshSkinSelector, 50.0f, 0, s_paSkinList.size(), g_Config.m_UiWideview ? 12 : 10, OldSelected);
 
 	for(int i = 0; i < s_paSkinList.size(); ++i)
