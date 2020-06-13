@@ -489,15 +489,18 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 
 			Info.m_Size = 50.0f;
 			{ // background
-				static const char* s_apSonixSkins[] = { "Eviltee", "Flokes", "Greeny", "Grey_flokes", "Puar", "redz", "Toykeb", "Trela" };
+				static const char* s_apGamerSkins[] = {
+					"Eviltee", "Flokes", "Greeny", "Grey_flokes", "Puar", "redz", "Toykeb", "Trela", // Sonix
+					"greensward",
+				 };
 				static const char* s_apDefaultSkins[] = {
 					"beaver","brownbear","cammostripes","force","greyfox","limedog","paintgre","pento","raccoon","saddo","spiky","tooxy","twintri","bluekitty","bumbler","cavebat",
 					"fox","hippo","limekitty","pandabear","piggy","redbopp","setisu","swardy","toptri","warmouse","bluestripe","cammo","default","greycoon","koala","monkey","panther",
 					"pinky","redstripe","snowti","tiger","twinbop","warpaint"
 				};
 				bool Hit = false;
-				for(unsigned j = 0; j < sizeof(s_apSonixSkins)/sizeof(const char*); j++)
-					if(str_comp(s->m_aName, s_apSonixSkins[j]) == 0)
+				for(unsigned j = 0; j < sizeof(s_apGamerSkins)/sizeof(const char*); j++)
+					if(str_comp(s->m_aName, s_apGamerSkins[j]) == 0)
 					{
 						RenderTools()->DrawUIRect(&(Item.m_Rect), vec4(0.17f, 0.46f, 0.975f, 0.5f), CUI::CORNER_ALL, 5.0f);
 						Hit = true;
